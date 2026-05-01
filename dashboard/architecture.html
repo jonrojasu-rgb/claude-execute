@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CLAUDE EXECUTE :: ARCHITECTURE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #000;
+  --green: #00ff66;
+  --green-dim: #00aa44;
+  --green-faint: #035c1f;
+  --green-glow: rgba(0,255,102,0.55);
+  --amber: #ffb700;
+  --red: #ff3355;
+  --grey: #4a5a4a;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--green);
+  font-family: var(--mono);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+#rain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.06;
+}
+
+#scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(0,255,102,0.025) 0 1px, transparent 2px 4px);
+  mix-blend-mode: screen;
+}
+
+.stage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 36px 60px;
+  text-shadow: 0 0 8px var(--green-glow);
+}
+
+/* ─── Header ─── */
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-size: 16px;
+}
+.brand .sep { color: var(--green-dim); margin: 0 10px; }
+.brand .sub { color: var(--green-dim); font-weight: 400; }
+.phase {
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--amber);
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(255,183,0,0.5);
+  border: 1px solid rgba(255,183,0,0.4);
+  padding: 5px 14px;
+  min-width: 320px;
+  text-align: center;
+}
+.title {
+  font-size: 12px;
+  color: var(--green-dim);
+  letter-spacing: 0.2em;
+}
+
+/* ─── Diagram ─── */
+.diagram {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.svg-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.svg-wrap svg { width: 100%; height: 100%; }
+
+.grid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  grid-template-rows: 1fr 0.6fr;
+  gap: 0;
+  align-items: center;
+  justify-items: center;
+}
+
+.node {
+  position: relative;
+  background: #050805;
+  border: 1px solid var(--green-faint);
+  padding: 22px 26px;
+  width: 320px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0 0 1px rgba(0,255,102,0.04), 0 0 28px rgba(0,255,102,0.06) inset;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.node.active {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px var(--green), 0 0 32px rgba(0,255,102,0.25), 0 0 28px rgba(0,255,102,0.1) inset;
+}
+.node h2 {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--green);
+  text-transform: uppercase;
+}
+.node h2 .icon { color: var(--green-dim); margin-right: 8px; }
+.node .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 3px 0;
+  color: var(--green-dim);
+  border-bottom: 1px dotted var(--green-faint);
+}
+.node .row:last-child { border-bottom: none; }
+.node .row b { color: var(--green); font-weight: 500; }
+.node .desc {
+  color: var(--green-dim);
+  font-size: 11px;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+/* TradingView */
+.node-tv { grid-column: 1; grid-row: 1; }
+
+/* Claude */
+.node-cx {
+  grid-column: 2; grid-row: 1;
+  width: 380px;
+  padding: 24px 28px;
+  position: relative;
+}
+.node-cx::before {
+  content: 'BRAIN';
+  position: absolute;
+  top: -10px; left: 14px;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  background: var(--bg);
+  color: var(--amber);
+  padding: 0 8px;
+}
+.cx-conditions { margin-top: 10px; }
+.cond {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--green-faint);
+  align-items: baseline;
+  font-size: 11px;
+  opacity: 0.25;
+  transition: opacity 0.3s, color 0.3s;
+}
+.cond.lit { opacity: 1; }
+.cond .marker { font-weight: 700; color: var(--grey); }
+.cond .label { color: var(--green-dim); }
+.cond .val { color: var(--green-dim); font-size: 10px; font-variant-numeric: tabular-nums; }
+.cond.lit.pass .marker, .cond.lit.pass .label { color: var(--green); }
+.cond.lit.pass .val { color: var(--green); }
+.cond.lit.fail .marker, .cond.lit.fail .label { color: var(--red); }
+.cond.lit.fail .val { color: var(--red); }
+
+/* Exchange */
+.node-ex { grid-column: 3; grid-row: 1; }
+
+/* Log */
+.node-log {
+  grid-column: 2; grid-row: 2;
+  width: 380px;
+  margin-top: 30px;
+}
+.log-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 14px;
+  font-size: 11px;
+  padding: 3px 0;
+  color: var(--green-dim);
+  border-bottom: 1px dotted var(--green-faint);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.35;
+  transition: opacity 0.4s;
+}
+.log-row.lit { opacity: 1; }
+.log-row.pass b { color: var(--green); }
+.log-row.block b { color: var(--red); }
+
+/* ─── No-direct-line emphasis ─── */
+.no-direct {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--red);
+  opacity: 0;
+  text-transform: uppercase;
+  border: 1px dashed var(--red);
+  padding: 4px 10px;
+  background: var(--bg);
+  text-shadow: 0 0 6px rgba(255,51,85,0.5);
+  animation: warnPulse 12s linear infinite;
+}
+@keyframes warnPulse {
+  0%, 76% { opacity: 0; }
+  78%, 86% { opacity: 1; }
+  88%, 100% { opacity: 0; }
+}
+
+/* ─── Footer ─── */
+.foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--green-dim);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ─── SVG line styles ─── */
+.line {
+  stroke: var(--green-faint);
+  stroke-width: 1.5;
+  fill: none;
+  stroke-dasharray: 4 4;
+}
+.line-pulse {
+  fill: var(--green);
+  filter: drop-shadow(0 0 6px var(--green));
+}
+.arrow {
+  fill: var(--green-dim);
+}
+
+/* Animated dashes for data flow */
+.flow-tv {
+  stroke: var(--green-dim);
+  stroke-width: 1.5;
+  fill: none;
+  stroke-dasharray: 6 8;
+  stroke-dashoffset: 0;
+  opacity: 0.45;
+  animation: dashflow 1.4s linear infinite, segOnTV 12s linear infinite;
+}
+.flow-cx {
+  stroke: var(--green-dim);
+  stroke-width: 1.5;
+  fill: none;
+  stroke-dasharray: 6 8;
+  opacity: 0.45;
+  animation: dashflow 1.4s linear infinite, segOnCX 12s linear infinite;
+}
+.flow-log {
+  stroke: var(--green-dim);
+  stroke-width: 1.5;
+  fill: none;
+  stroke-dasharray: 6 8;
+  opacity: 0.45;
+  animation: dashflow 1.4s linear infinite, segOnLOG 12s linear infinite;
+}
+
+@keyframes dashflow {
+  to { stroke-dashoffset: -28; }
+}
+/* Segment on/off keyframes per phase */
+@keyframes segOnTV {
+  0%, 8% { opacity: 0.1; }
+  10%, 28% { opacity: 1; }
+  30%, 100% { opacity: 0.2; }
+}
+@keyframes segOnCX {
+  0%, 46% { opacity: 0.1; }
+  48%, 64% { opacity: 1; }
+  66%, 100% { opacity: 0.2; }
+}
+@keyframes segOnLOG {
+  0%, 70% { opacity: 0.1; }
+  72%, 88% { opacity: 1; }
+  90%, 100% { opacity: 0.2; }
+}
+
+/* Pulse dots traveling along the lines */
+.pulse {
+  fill: var(--green);
+  filter: drop-shadow(0 0 8px var(--green-glow));
+  opacity: 0;
+}
+#pulseTV { animation: travelTV 12s linear infinite; }
+#pulseCX { animation: travelCX 12s linear infinite; }
+#pulseLOG { animation: travelLOG 12s linear infinite; }
+
+/* Master 12s timeline:
+ *   0–1   intro
+ *   1–3   read from TradingView (pulse 1)
+ *   3–5.5 strategy conditions light
+ *   5.5–7 send order to Exchange (pulse 2)
+ *   7–9   write log (pulse 3)
+ *   9–11  rest/glow
+ *   11–12 reset
+ */
+
+@keyframes travelTV {
+  0%, 8% { opacity: 0; offset-distance: 0%; }
+  10% { opacity: 1; }
+  28% { opacity: 1; offset-distance: 100%; }
+  30%, 100% { opacity: 0; offset-distance: 100%; }
+}
+@keyframes travelCX {
+  0%, 46% { opacity: 0; offset-distance: 0%; }
+  48% { opacity: 1; }
+  64% { opacity: 1; offset-distance: 100%; }
+  66%, 100% { opacity: 0; offset-distance: 100%; }
+}
+@keyframes travelLOG {
+  0%, 70% { opacity: 0; offset-distance: 0%; }
+  72% { opacity: 1; }
+  88% { opacity: 1; offset-distance: 100%; }
+  90%, 100% { opacity: 0; offset-distance: 100%; }
+}
+
+/* Node activation timing */
+.node-tv { animation: nodeTV 12s linear infinite; }
+.node-cx { animation: nodeCX 12s linear infinite; }
+.node-ex { animation: nodeEX 12s linear infinite; }
+.node-log { animation: nodeLOG 12s linear infinite; }
+
+@keyframes nodeTV {
+  0%, 8%, 80%, 100% { border-color: var(--green-faint); box-shadow: 0 0 0 1px rgba(0,255,102,0.04), 0 0 28px rgba(0,255,102,0.06) inset; }
+  10%, 78% { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 32px rgba(0,255,102,0.25), 0 0 28px rgba(0,255,102,0.1) inset; }
+}
+@keyframes nodeCX {
+  0%, 22%, 80%, 100% { border-color: var(--green-faint); box-shadow: 0 0 0 1px rgba(0,255,102,0.04), 0 0 28px rgba(0,255,102,0.06) inset; }
+  24%, 78% { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 32px rgba(0,255,102,0.25), 0 0 28px rgba(0,255,102,0.1) inset; }
+}
+@keyframes nodeEX {
+  0%, 60%, 80%, 100% { border-color: var(--green-faint); box-shadow: 0 0 0 1px rgba(0,255,102,0.04), 0 0 28px rgba(0,255,102,0.06) inset; }
+  62%, 78% { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 32px rgba(0,255,102,0.25), 0 0 28px rgba(0,255,102,0.1) inset; }
+}
+@keyframes nodeLOG {
+  0%, 84%, 100% { border-color: var(--green-faint); box-shadow: 0 0 0 1px rgba(0,255,102,0.04), 0 0 28px rgba(0,255,102,0.06) inset; }
+  86%, 96% { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 32px rgba(0,255,102,0.25), 0 0 28px rgba(0,255,102,0.1) inset; }
+}
+
+/* Conditions appear sequentially during phase 2 */
+.cond.c1 { animation: condLight 12s linear infinite; animation-delay: 0s; }
+.cond.c2 { animation: condLight 12s linear infinite; animation-delay: 0s; }
+.cond.c3 { animation: condLight 12s linear infinite; animation-delay: 0s; }
+@keyframes condLight {
+  0%, 100% { opacity: 0.25; }
+}
+.cond.c1 { animation-name: condLight1; }
+.cond.c2 { animation-name: condLight2; }
+.cond.c3 { animation-name: condLight3; }
+@keyframes condLight1 {
+  0%, 28% { opacity: 0.25; }
+  30%, 78% { opacity: 1; }
+  82%, 100% { opacity: 0.25; }
+}
+@keyframes condLight2 {
+  0%, 36% { opacity: 0.25; }
+  38%, 78% { opacity: 1; }
+  82%, 100% { opacity: 0.25; }
+}
+@keyframes condLight3 {
+  0%, 44% { opacity: 0.25; }
+  46%, 78% { opacity: 1; }
+  82%, 100% { opacity: 0.25; }
+}
+
+/* Log rows light up during phase 4 */
+.log-row.lr1 { animation: logLight1 12s linear infinite; }
+.log-row.lr2 { animation: logLight2 12s linear infinite; }
+@keyframes logLight1 {
+  0%, 72% { opacity: 0.35; }
+  74%, 96% { opacity: 1; }
+  98%, 100% { opacity: 0.35; }
+}
+@keyframes logLight2 {
+  0%, 78% { opacity: 0.35; }
+  80%, 96% { opacity: 1; }
+  98%, 100% { opacity: 0.35; }
+}
+
+/* Phase label cycler */
+.phase span { display: inline-block; }
+#phase-text {
+  animation: phaseCycle 12s linear infinite;
+}
+@keyframes phaseCycle {
+  0%, 7%   { content: 'AWAITING TICK'; }
+  10%, 25% { content: 'READING CHART…'; }
+  30%, 45% { content: 'EVALUATING STRATEGY…'; }
+  50%, 63% { content: 'PLACING ORDER…'; }
+  70%, 88% { content: 'LOGGING DECISION…'; }
+  92%, 100%{ content: 'AWAITING TICK'; }
+}
+
+/* Title pulses gently */
+.title b { color: var(--green); }
+</style>
+</head>
+<body>
+
+<canvas id="rain"></canvas>
+<div id="scanlines"></div>
+
+<div class="stage">
+  <!-- HEADER -->
+  <div class="head">
+    <div class="brand">CLAUDE&nbsp;EXECUTE<span class="sep">::</span><span class="sub">ARCHITECTURE</span></div>
+    <div class="phase"><span id="phase-text">READING CHART…</span></div>
+    <div class="title">SCENE&nbsp;02 <span style="color:var(--green-dim)">/</span> 60s</div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="diagram">
+    <div class="grid">
+
+      <!-- TRADINGVIEW -->
+      <div class="node node-tv">
+        <h2><span class="icon">[ 01 ]</span>TRADINGVIEW</h2>
+        <div class="row"><span>SYMBOL</span><b>BTCUSDT</b></div>
+        <div class="row"><span>TF</span><b>4H</b></div>
+        <div class="row"><span>PRICE</span><b>$63,290</b></div>
+        <div class="row"><span>RSI(3)</span><b>24.10</b></div>
+        <div class="row"><span>EMA(8)</span><b>$63,010</b></div>
+        <div class="row"><span>VWAP</span><b>$62,880</b></div>
+        <div class="desc">Source of price &amp; indicators.</div>
+      </div>
+
+      <!-- CLAUDE EXECUTE -->
+      <div class="node node-cx">
+        <h2><span class="icon">[ 02 ]</span>CLAUDE EXECUTE</h2>
+        <div class="row"><span>STRATEGY</span><b>VWAP + RSI(3) + EMA(8)</b></div>
+        <div class="row"><span>BIAS</span><b>BULLISH</b></div>
+        <div class="cx-conditions">
+          <div class="cond c1 pass">
+            <span class="marker">✓</span>
+            <span class="label">Price &gt; VWAP</span>
+            <span class="val">63,290 / 62,880</span>
+          </div>
+          <div class="cond c2 pass">
+            <span class="marker">✓</span>
+            <span class="label">Price &gt; EMA(8)</span>
+            <span class="val">63,290 / 63,010</span>
+          </div>
+          <div class="cond c3 pass">
+            <span class="marker">✓</span>
+            <span class="label">RSI(3) &lt; 30</span>
+            <span class="val">24.10</span>
+          </div>
+        </div>
+        <div class="desc">Reads chart. Checks every condition. Sends order only if every one passes.</div>
+      </div>
+
+      <!-- EXCHANGE -->
+      <div class="node node-ex">
+        <h2><span class="icon">[ 03 ]</span>EXCHANGE</h2>
+        <div class="row"><span>VENUE</span><b>BITGET</b></div>
+        <div class="row"><span>MODE</span><b>PAPER</b></div>
+        <div class="row"><span>BALANCE</span><b>$1,000</b></div>
+        <div class="row"><span>MAX/TRADE</span><b>$50</b></div>
+        <div class="row"><span>MAX/DAY</span><b>3</b></div>
+        <div class="desc">Where your money sits. Receives orders, fills them.</div>
+      </div>
+
+      <!-- DECISION LOG -->
+      <div class="node node-log">
+        <h2><span class="icon">[ 04 ]</span>DECISION LOG &amp; TAX RECORD</h2>
+        <div class="log-row lr1 pass">
+          <span style="color:var(--green-dim)">2026-05-01 16:48</span>
+          <b>PASS</b>
+          <span>BUY $10 @ $63,290</span>
+          <span style="color:var(--green-dim)">PAPER-…725998</span>
+        </div>
+        <div class="log-row lr2 block">
+          <span style="color:var(--green-dim)">2026-05-01 18:48</span>
+          <b>BLOCK</b>
+          <span>RSI(3) not below 30 (47.2)</span>
+          <span style="color:var(--green-dim)">—</span>
+        </div>
+        <div style="font-size:10px;color:var(--green-dim);margin-top:8px;letter-spacing:0.1em">
+          EVERY DECISION SAVED → trades.csv  +  safety-check-log.json
+        </div>
+      </div>
+
+      <div class="no-direct">⚠ NO DIRECT CONNECTION</div>
+
+    </div>
+
+    <!-- SVG overlay for connections -->
+    <div class="svg-wrap">
+      <svg viewBox="0 0 1920 760" preserveAspectRatio="none">
+        <defs>
+          <marker id="arrowhead" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L12,6 L0,12 z" fill="var(--green-dim)"/>
+          </marker>
+          <marker id="arrowhead-bright" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L12,6 L0,12 z" fill="var(--green)"/>
+          </marker>
+        </defs>
+
+        <!-- TV → Claude -->
+        <path id="lineTV" class="flow-tv" d="M 460 240 L 740 240" marker-end="url(#arrowhead-bright)"/>
+        <!-- Claude → Exchange -->
+        <path id="lineCX" class="flow-cx" d="M 1180 240 L 1460 240" marker-end="url(#arrowhead-bright)"/>
+        <!-- Claude → Log -->
+        <path id="lineLOG" class="flow-log" d="M 960 320 L 960 540" marker-end="url(#arrowhead-bright)"/>
+
+        <!-- Animated pulses -->
+        <circle id="pulseTV" class="pulse" r="6" style="offset-path: path('M 460 240 L 740 240');"/>
+        <circle id="pulseCX" class="pulse" r="6" style="offset-path: path('M 1180 240 L 1460 240');"/>
+        <circle id="pulseLOG" class="pulse" r="6" style="offset-path: path('M 960 320 L 960 540');"/>
+
+        <!-- Strike-through line representing the forbidden direct connection -->
+        <line x1="540" y1="170" x2="1380" y2="170" stroke="var(--red)" stroke-width="1" stroke-dasharray="3 5" opacity="0.0">
+          <animate attributeName="opacity" values="0;0;0;0;0;0;0;0.6;0.6;0;0;0" dur="12s" repeatCount="indefinite" />
+        </line>
+        <text x="960" y="160" fill="var(--red)" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="3" text-anchor="middle" opacity="0">
+          ✗ NEVER
+          <animate attributeName="opacity" values="0;0;0;0;0;0;0;0.7;0.7;0;0;0" dur="12s" repeatCount="indefinite" />
+        </text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <span>▸ THREE COMPONENTS · CLAUDE IS THE BRAIN · EVERY DECISION LOGGED</span>
+    <span style="color:var(--green-dim)">LOOP 12s</span>
+  </div>
+</div>
+
+<script>
+// Phase label rotator (CSS content can't change @ keyframes for elements — JS instead)
+const phaseEl = document.getElementById('phase-text');
+const phases = [
+  { t: 0,   text: 'AWAITING TICK' },
+  { t: 1,   text: 'READING CHART…' },
+  { t: 3,   text: 'EVALUATING STRATEGY…' },
+  { t: 5.5, text: 'ALL CONDITIONS PASSED' },
+  { t: 6,   text: 'PLACING ORDER…' },
+  { t: 8.4, text: 'LOGGING DECISION…' },
+  { t: 10.5,text: 'AWAITING TICK' },
+];
+const cycleMs = 12000;
+const start = performance.now();
+function updatePhase() {
+  const elapsed = ((performance.now() - start) % cycleMs) / 1000;
+  let current = phases[0].text;
+  for (const p of phases) if (elapsed >= p.t) current = p.text;
+  if (phaseEl.textContent !== current) phaseEl.textContent = current;
+  requestAnimationFrame(updatePhase);
+}
+requestAnimationFrame(updatePhase);
+
+// Matrix rain (subtle, in background)
+(() => {
+  const canvas = document.getElementById('rain');
+  const ctx = canvas.getContext('2d');
+  let cols, drops, fontSize = 14;
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols = Math.floor(canvas.width / fontSize);
+    drops = Array(cols).fill(0).map(() => Math.random() * -100);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉ01ABCDEF$#%&*+-=<>'.split('');
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.10)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00ff66';
+    ctx.font = fontSize + 'px JetBrains Mono, monospace';
+    for (let i = 0; i < drops.length; i++) {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(ch, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>

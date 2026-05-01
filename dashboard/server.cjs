@@ -56,6 +56,10 @@ const server = http.createServer((req, res) => {
     return serveFile(res, path.join(__dirname, "index.html"), "text/html; charset=utf-8");
   }
 
+  if (url === "/architecture" || url === "/architecture.html") {
+    return serveFile(res, path.join(__dirname, "architecture.html"), "text/html; charset=utf-8");
+  }
+
   if (url === "/api/log") {
     const p = path.join(ROOT, "safety-check-log.json");
     if (!fs.existsSync(p)) {
