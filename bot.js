@@ -14,6 +14,7 @@ import { execSync } from "child_process";
 // ─── Onboarding ───────────────────────────────────────────────────────────────
 
 function checkOnboarding() {
+  if (process.argv.includes("--once")) return; // env vars come from parent process in webhook mode
   const paperMode = process.env.PAPER_TRADING !== "false";
   const required = paperMode ? [] : ["BITGET_API_KEY", "BITGET_SECRET_KEY", "BITGET_PASSPHRASE"];
   const missing = required.filter((k) => !process.env[k]);
@@ -643,6 +644,22 @@ async function run() {
 
   printSMCCheck(conditions);
 
+  // TradingView webhook direction filter — only active when TV_ACTION env var is set
+  const tvAction = process.env.TV_ACTION || "";
+  let tvBlocked = false;
+  if (tvAction && direction !== "neutral") {
+    const tvDir = /sell|short|bear/i.test(tvAction) ? "bearish" : "bullish";
+    tvBlocked = tvDir !== direction;
+    if (tvBlocked) {
+      console.log(`\n⚠️  TV SIGNAL MISMATCH — TV: ${tvAction.toUpperCase()} / SMC: ${direction.toUpperCase()} — skipping trade`);
+      conditions.push({ label: "TV signal aligned with SMC bias", required: true, pass: false,
+        actual: `TV ${tvAction} conflicts with SMC ${direction}`, points: 0 });
+    } else {
+      console.log(`\n✅ TV SIGNAL CONFIRMED — ${tvAction.toUpperCase()} matches SMC ${direction.toUpperCase()}`);
+    }
+  }
+  const effectivePass = allPass && !tvBlocked;
+
   // Position sizing scales with confluence tier (A=1%, B=0.75%, C=0.5%)
   const riskPct  = tier === "A" ? 0.01 : tier === "B" ? 0.0075 : 0.005;
   const tradeSize = Math.min(CONFIG.portfolioValue * riskPct, CONFIG.maxTradeSizeUSD);
@@ -671,11 +688,12 @@ async function run() {
         : null,
     },
     conditions,
-    allPass,
+    allPass: effectivePass,
     tradeSize,
     orderPlaced:  false,
     orderId:      null,
     paperTrading: CONFIG.paperTrading,
+    tvSignal:     tvAction || null,
     limits: {
       maxTradeSizeUSD:  CONFIG.maxTradeSizeUSD,
       maxTradesPerDay:  CONFIG.maxTradesPerDay,
@@ -683,7 +701,7 @@ async function run() {
     },
   };
 
-  if (!allPass) {
+  if (!effectivePass) {
     const failed = conditions.filter((c) => !c.pass).map((c) => `\n   - ${c.label}`).join("");
     console.log(`🚫 NO TRADE — score ${score}/${maxScore}${tier === "skip" ? " (below minimum)" : ", required conditions failed"}`);
     console.log(`   Failed:${failed}`);
@@ -831,9 +849,13 @@ function buildTradeAlert(entry) {
 
 if (process.argv.includes("--tax-summary")) {
   generateTaxSummary();
+} else if (process.argv.includes("--once")) {
+  // Webhook-triggered single run — no scheduler, no interactive onboarding
+  initCsv();
+  run().catch((err) => console.error("Bot error:", err));
 } else {
-  const HOUR_MS = 15 * 60 * 1000;
+  const INTERVAL_MS = 15 * 60 * 1000;
   const runSafe = () => run().catch((err) => console.error("Bot error:", err));
   runSafe();
-  setInterval(runSafe, HOUR_MS);
+  setInterval(runSafe, INTERVAL_MS);
 }

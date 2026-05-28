@@ -7,6 +7,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { spawn } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const PORT = process.env.PORT || process.env.DASHBOARD_PORT || 8080;
@@ -107,6 +108,41 @@ const server = http.createServer((req, res) => {
       paperTrading: (process.env.PAPER_TRADING || "true") === "true",
     };
     return send(res, 200, JSON.stringify(env), { "Content-Type": "application/json" });
+  }
+
+  // ── TradingView webhook ──────────────────────────────────────────────────────
+  if (url === "/webhook/tradingview" && req.method === "POST") {
+    let body = "";
+    req.on("data", (chunk) => { body += chunk; });
+    req.on("end", () => {
+      let payload;
+      try { payload = JSON.parse(body); } catch {
+        return send(res, 400, JSON.stringify({ error: "Invalid JSON" }), { "Content-Type": "application/json" });
+      }
+
+      // Accept secret in Authorization header ("Bearer <token>") or JSON body field
+      const authHeader = req.headers["authorization"] || "";
+      const headerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      const bodyToken   = typeof payload.secret === "string" ? payload.secret : "";
+      const expected    = process.env.WEBHOOK_SECRET || "";
+      if (!expected || (headerToken !== expected && bodyToken !== expected)) {
+        return send(res, 401, JSON.stringify({ error: "Unauthorized" }), { "Content-Type": "application/json" });
+      }
+
+      // Acknowledge immediately — TradingView requires a fast 2xx
+      send(res, 200, JSON.stringify({ ok: true, triggered: new Date().toISOString() }), { "Content-Type": "application/json" });
+
+      const action = String(payload.action || "");
+      const symbol = String(payload.symbol || process.env.SYMBOL || "BTCUSDT");
+      console.log(`[webhook] signal received — action: ${action || "—"}  symbol: ${symbol}`);
+
+      // Spawn a one-shot bot run, passing the TV signal as env vars
+      const env = { ...process.env, TV_ACTION: action, TV_SYMBOL: symbol };
+      const child = spawn(process.execPath, ["bot.js", "--once"], { cwd: ROOT, env, stdio: "inherit" });
+      child.on("error", (err) => console.error("[webhook] spawn error:", err.message));
+      child.on("exit",  (code) => console.log(`[webhook] bot exited (code ${code})`));
+    });
+    return;
   }
 
   send(res, 404, "Not found");
