@@ -721,9 +721,9 @@ async function run() {
       }
     }
 
-    await sendTelegram(buildTradeAlert(logEntry));
   }
 
+  await sendTelegram(buildTradeAlert(logEntry));
   log.trades.push(logEntry);
   saveLog(log);
   console.log(`\nDecision log saved → ${LOG_FILE}`);
@@ -756,11 +756,34 @@ async function sendTelegram(text) {
 
 function buildTradeAlert(entry) {
   const { symbol, direction, price, score, tier, conditions, tradeSize,
-          paperTrading, orderId, error, indicators } = entry;
+          paperTrading, orderId, error, indicators, allPass } = entry;
 
-  const verb     = direction === "bearish" ? "SHORT ▼" : "LONG ▲";
-  const modeTag  = paperTrading ? "📋 PAPER" : "🔴 LIVE";
+  const modeTag   = paperTrading ? "📋 PAPER" : "🔴 LIVE";
   const gradeIcon = { A: "🟢", B: "🔵", C: "🟡" }[tier] ?? "⚪";
+  const priceStr  = price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  if (!allPass) {
+    const dirLabel   = direction === "neutral" ? "NEUTRAL" : direction === "bearish" ? "BEARISH ▼" : "BULLISH ▲";
+    const failedLines = (conditions || [])
+      .filter((c) => !c.pass)
+      .map((c) => {
+        const label = c.label.replace(/ — .+/, "").slice(0, 52);
+        const note  = c.actual ? `  <i>${String(c.actual).slice(0, 48)}</i>` : "";
+        return `❌ ${label}${note}`;
+      }).join("\n");
+    return [
+      `🤖 <b>CLAUDE EXECUTE — SIGNAL</b>`,
+      ``,
+      `<b>🚫 BLOCK — ${symbol || "BTCUSDT"}</b>  ${modeTag}`,
+      `💰 Price: <b>$${priceStr}</b>  ·  ${dirLabel}`,
+      `${gradeIcon} Score: <b>${score}/14</b>  ·  Grade: <b>${tier.toUpperCase()}</b>`,
+      ``,
+      `<b>Failed conditions</b>`,
+      failedLines,
+    ].join("\n");
+  }
+
+  const verb = direction === "bearish" ? "SHORT ▼" : "LONG ▲";
 
   // Conditions block — trim long dynamic labels for readability
   const condLines = (conditions || []).map((c) => {
@@ -779,7 +802,6 @@ function buildTradeAlert(entry) {
   const atr  = indicators?.atr;
   const stop = atr
     ? (() => {
-        const buf = (atr * 0.5).toFixed(0);
         const lvl = direction === "bullish"
           ? ((indicators?.activeZone ? parseFloat(indicators.activeZone.match(/\$(\d+)/)?.[1] ?? price) : price) - atr * 0.5).toFixed(0)
           : ((indicators?.activeZone ? parseFloat(indicators.activeZone.match(/\$(\d+)–\$(\d+)/)?.[2] ?? price) : price) + atr * 0.5).toFixed(0);
@@ -798,7 +820,7 @@ function buildTradeAlert(entry) {
     `🤖 <b>CLAUDE EXECUTE — SIGNAL</b>`,
     ``,
     `<b>${verb} ${symbol || "BTCUSDT"}</b>  ${modeTag}`,
-    `💰 Price: <b>$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>`,
+    `💰 Price: <b>$${priceStr}</b>`,
     `${gradeIcon} Score: <b>${score}/14</b>  ·  Grade: <b>${tier.toUpperCase()}</b>`,
     `💵 Size: $${tradeSize.toFixed(2)}${zone}${stop}${orderLine}`,
     ``,
