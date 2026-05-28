@@ -78,6 +78,20 @@ const CONFIG = {
 
 const LOG_FILE = "safety-check-log.json";
 
+// ─── Timezone helpers (America/Panama — UTC-5, no DST) ────────────────────────
+
+const TIMEZONE = "America/Panama";
+
+function toPanamaDate(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(date);
+}
+
+function toPanamaTime(date = new Date()) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: TIMEZONE, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  }).format(date);
+}
+
 // ─── Logging ─────────────────────────────────────────────────────────────────
 
 function loadLog() {
@@ -90,8 +104,8 @@ function saveLog(log) {
 }
 
 function countTodaysTrades(log) {
-  const today = new Date().toISOString().slice(0, 10);
-  return log.trades.filter((t) => t.timestamp.startsWith(today) && t.orderPlaced).length;
+  const today = toPanamaDate();
+  return log.trades.filter((t) => toPanamaDate(new Date(t.timestamp)) === today && t.orderPlaced).length;
 }
 
 // ─── Market Data (Binance public API — free, no auth) ────────────────────────
@@ -533,7 +547,7 @@ async function placeBitGetOrder(symbol, side, sizeUSD, price) {
 const CSV_FILE = "trades.csv";
 
 const CSV_HEADERS = [
-  "Date", "Time (UTC)", "Exchange", "Symbol", "Side", "Quantity",
+  "Date", "Time (Panama)", "Exchange", "Symbol", "Side", "Quantity",
   "Price", "Total USD", "Fee (est.)", "Net Amount", "Order ID", "Mode", "Notes",
 ].join(",");
 
@@ -547,8 +561,8 @@ function initCsv() {
 
 function writeTradeCsv(logEntry) {
   const now  = new Date(logEntry.timestamp);
-  const date = now.toISOString().slice(0, 10);
-  const time = now.toISOString().slice(11, 19);
+  const date = toPanamaDate(now);
+  const time = toPanamaTime(now);
 
   let side = "", quantity = "", totalUSD = "", fee = "", netAmount = "", orderId = "", mode = "", notes = "";
 
@@ -606,7 +620,7 @@ async function run() {
 
   console.log("═══════════════════════════════════════════════════════════");
   console.log("  Claude Trading Bot — SMC Strategy");
-  console.log(`  ${new Date().toISOString()}`);
+  console.log(`  ${toPanamaDate()} ${toPanamaTime()} (Panama UTC-5)`);
   console.log(`  Mode: ${CONFIG.paperTrading ? "📋 PAPER TRADING" : "🔴 LIVE TRADING"}`);
   console.log("═══════════════════════════════════════════════════════════");
 

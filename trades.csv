@@ -2,3 +2,4 @@ Date,Time (UTC),Exchange,Symbol,Side,Quantity,Price,Total USD,Fee (est.),Net Amo
 ,,,,,,,,,,,"NOTE","Hey, if you're at this stage of the video, you must be enjoying it... perhaps you could hit subscribe now? :)"
 2026-05-28,01:55:26,BitGet,BTCUSDT,,,74294.01,,,,BLOCKED,BLOCKED,"Failed: RSI(3) above 70 (reversal setup in downtrend)"
 2026-05-28,02:25:09,BitGet,BTCUSDT,,,74252.79,,,,BLOCKED,BLOCKED,"Failed: 4H BOS bearish confirmed; Price at valid 4H order block; OB + FVG overlap at zone; Liquidity sweep into zone; 4H SMMA(50) confluent with zone"
+2026-05-28,03:18:03,BitGet,BTCUSDT,,,73874.56,,,,BLOCKED,BLOCKED,"Failed: 4H BOS bearish confirmed; Price at valid 4H order block; Price at 4H fair value gap; OB + FVG overlap at zone; Liquidity sweep into zone; 4H SMMA(50) confluent with zone"
