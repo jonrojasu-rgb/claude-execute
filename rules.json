@@ -1,50 +1,343 @@
 {
-  "watchlist": ["BTCUSDT"],
-  "default_timeframe": "1m",
+  "watchlist": ["BTCUSDT", "ETHUSDT"],
+  "default_timeframe": "4H",
 
   "strategy": {
-    "name": "VWAP + RSI(3) + EMA(8) Scalping Strategy",
-    "sources": [],
-    "description": "Three indicators, each doing a different job. EMA(8) for trend direction, VWAP for session bias, RSI(3) for entry timing. All three must align before a trade fires."
-  },
-
-  "indicators": {
-    "ema_8": "Trend direction. Price above EMA(8) = bullish momentum. Below = bearish.",
-    "vwap": "Session bias. Price above VWAP = buyers in control. Below = sellers. Resets at midnight UTC.",
-    "rsi_3": "Entry timing. RSI on 3 candles only — extremely sensitive. Below 30 in an uptrend = snap-back setup. Above 70 in a downtrend = reversal likely."
-  },
-
-  "bias_criteria": {
-    "bullish": ["Price is above VWAP", "Price is above EMA(8)"],
-    "bearish": ["Price is below VWAP", "Price is below EMA(8)"]
-  },
-
-  "entry_rules": {
-    "long": [
-      "Price is above VWAP — buyers in control for the session",
-      "Price is above EMA(8) — uptrend confirmed",
-      "RSI(3) has dropped below 30 — short-term pullback in an uptrend, snap-back likely"
-    ],
-    "short": [
-      "Price is below VWAP — sellers in control",
-      "Price is below EMA(8) — downtrend confirmed",
-      "RSI(3) has spiked above 70 — overbought in a downtrend, reversal likely"
+    "name": "Smart Money Concepts (SMC) — Institutional Alignment",
+    "version": "1.0",
+    "description": "Trades only where institutional footprints converge: order blocks, fair value gaps, and liquidity sweeps on the 4H entry frame, filtered by daily bias and confirmed on the 1H. No setup fires without multi-timeframe alignment. Prioritises a high win rate over frequency — missing a trade is always cheaper than taking a bad one.",
+    "philosophy": [
+      "Institutions accumulate and distribute at specific price zones, leaving footprints that repeat.",
+      "Retail stop clusters (equal highs, equal lows) are targets — price sweeps them before reversing.",
+      "The best entries come after a liquidity sweep INTO an order block or FVG, not before.",
+      "Structure tells you where you are. Liquidity tells you where price is going next.",
+      "If the daily bias and the 4H setup disagree, do not trade."
     ]
   },
 
-  "exit_rules": [
-    "Exit when RSI(3) crosses back above 50 (for longs) or below 50 (for shorts)",
-    "Hard stop: 0.3% below entry for longs, 0.3% above entry for shorts",
-    "Take profit at next VWAP touch or EMA(8) cross"
-  ],
+  "timeframes": {
+    "bias": {
+      "frame": "1D",
+      "role": "Determines directional bias for the session. Only trade longs if daily is bullish. Only trade shorts if daily is bearish. No counter-trend trades.",
+      "read_from": "Daily swing structure, SMMA(21) slope, last BOS/CHoCH on daily"
+    },
+    "entry": {
+      "frame": "4H",
+      "role": "Where setups form. Identify order blocks, FVGs, and liquidity levels here. Price must be reacting at a 4H zone for a trade to be valid.",
+      "read_from": "4H order blocks, 4H FVGs, 4H liquidity pools, 4H BOS"
+    },
+    "confirmation": {
+      "frame": "1H",
+      "role": "Entry trigger. Wait for a 1H CHoCH (change of character) or BOS inside the 4H zone before entering. This reduces entering too early into a zone that has not yet shown reversal intent.",
+      "read_from": "1H CHoCH, 1H BOS, 1H displacement candle, 1H FVG retest"
+    },
+    "execution": {
+      "frame": "15m",
+      "role": "Optional precision entry. After 1H confirmation fires, drop to 15m to find the tightest entry and tightest stop, improving the risk-to-reward ratio.",
+      "read_from": "15m order block, 15m FVG, 15m engulfing candle"
+    }
+  },
+
+  "indicators": {
+    "smma_21": {
+      "type": "Smoothed Moving Average",
+      "period": 21,
+      "timeframe": "1D",
+      "role": "Primary trend filter. Price above SMMA(21) on daily = bullish bias, only look for longs. Price below = bearish bias, only look for shorts. Slope matters — flat SMMA means range, avoid directional bias.",
+      "calculation": "SMMA(n) = (SMMA_prev * (n-1) + close) / n, seeded with SMA(n) for first value"
+    },
+    "smma_50": {
+      "type": "Smoothed Moving Average",
+      "period": 50,
+      "timeframe": "4H",
+      "role": "Secondary confluence. Price trading above 4H SMMA(50) adds bullish confluence for longs; below adds bearish confluence for shorts. Not a standalone signal — use as confluence only.",
+      "calculation": "Same as SMMA(21)"
+    },
+    "volume": {
+      "role": "Confirms institutional participation. Impulse legs (displacement candles) must have above-average volume. Low-volume sweeps are weak and unreliable. Retracements into order blocks should come on declining volume.",
+      "measurement": "Compare current candle volume to 20-period average volume on the same timeframe",
+      "thresholds": {
+        "displacement": "Volume > 1.5x 20-period average — high institutional activity",
+        "retracement": "Volume < 0.8x 20-period average — weak pullback, zone likely to hold",
+        "sweep": "Volume spike at sweep candle confirms stop hunt; low volume sweep = unreliable"
+      }
+    },
+    "atr_14": {
+      "type": "Average True Range",
+      "period": 14,
+      "role": "Stop placement and position sizing. Stops are placed at 0.5x ATR beyond the invalidation level, not at arbitrary percentages. Also used to judge whether a zone is within reasonable reach (within 2x ATR) or too far away."
+    }
+  },
+
+  "concepts": {
+    "order_block": {
+      "definition": "The last opposite-colour candle before a significant displacement move. Represents the zone where institutions placed large orders. Price frequently returns to this zone to rebalance.",
+      "bullish_ob": {
+        "identification": "Last bearish (red) candle immediately before a strong bullish impulse that breaks structure. The body of this candle is the order block zone.",
+        "valid_conditions": [
+          "The move away from the OB must break at least one significant swing high (BOS)",
+          "OB has not been previously traded through and closed through on a higher timeframe",
+          "Price is returning to OB from above (retest), not approaching from below"
+        ],
+        "entry_zone": "Between the low and close of the bearish OB candle (refined entry: 50% of the OB body)",
+        "invalidation": "A 4H close below the OB low"
+      },
+      "bearish_ob": {
+        "identification": "Last bullish (green) candle immediately before a strong bearish impulse that breaks structure.",
+        "valid_conditions": [
+          "The move away from the OB must break at least one significant swing low (BOS)",
+          "OB has not been previously traded through and closed through",
+          "Price is returning to OB from below (retest), not approaching from above"
+        ],
+        "entry_zone": "Between the high and close of the bullish OB candle (refined entry: 50% of the OB body)",
+        "invalidation": "A 4H close above the OB high"
+      },
+      "confluence_boost": "An OB that also coincides with a FVG or a liquidity sweep is a premium setup — highest priority."
+    },
+
+    "fair_value_gap": {
+      "definition": "A 3-candle imbalance where the market moved so fast that a gap exists between candle 1's high/low and candle 3's low/high. Represents inefficiency that price tends to return to fill.",
+      "bullish_fvg": {
+        "identification": "High of candle 1 < Low of candle 3. The gap between these two levels is the FVG.",
+        "entry": "Price retraces into the FVG (between high of candle 1 and low of candle 3). Enter at the midpoint or lower 25% of the FVG.",
+        "invalidation": "A candle closes below the FVG low (full fill with close below = invalidated)"
+      },
+      "bearish_fvg": {
+        "identification": "Low of candle 1 > High of candle 3. The gap between these two levels is the FVG.",
+        "entry": "Price retraces into the FVG (between low of candle 1 and high of candle 3). Enter at the midpoint or upper 25% of the FVG.",
+        "invalidation": "A candle closes above the FVG high"
+      },
+      "priority": "FVGs embedded within order blocks (OB+FVG confluence) are the highest-quality setups. A standalone FVG without OB confluence requires additional confirmation."
+    },
+
+    "liquidity_sweep": {
+      "definition": "A deliberate move by institutions to grab the stop orders clustered above swing highs (buy-side liquidity) or below swing lows (sell-side liquidity) before reversing. Retail traders place stops at obvious highs and lows — institutions hunt them.",
+      "buy_side_sweep": {
+        "identification": "Price wicks above or briefly closes above a previous swing high or equal highs, then rapidly reverses with a strong bearish candle",
+        "significance": "Signals that sell-side institutions are now in control after grabbing buy stops. High probability of downside continuation.",
+        "valid_conditions": [
+          "The sweep candle must reject the level — a long upper wick is ideal",
+          "The sweep should be into or beyond the buy-side liquidity by at least a few ticks",
+          "A bearish displacement candle must follow the sweep on the same or next candle",
+          "Volume spike on the sweep candle confirms institutional activity"
+        ]
+      },
+      "sell_side_sweep": {
+        "identification": "Price wicks below or briefly closes below a previous swing low or equal lows, then rapidly reverses with a strong bullish candle",
+        "significance": "Signals that buy-side institutions are now in control after grabbing sell stops. High probability of upside continuation.",
+        "valid_conditions": [
+          "The sweep candle must reject the level — a long lower wick is ideal",
+          "A bullish displacement candle must follow the sweep",
+          "Volume spike on the sweep candle preferred"
+        ]
+      },
+      "highest_priority": "A liquidity sweep that lands precisely in an order block or FVG is the single highest-probability setup in this strategy. This combination (sweep + OB or FVG) is the primary entry trigger."
+    },
+
+    "break_of_structure": {
+      "definition": "A confirmed close beyond a significant swing high (bullish BOS) or swing low (bearish BOS), confirming that the market structure has shifted in that direction.",
+      "bullish_bos": {
+        "identification": "4H candle closes above the most recent significant swing high",
+        "significance": "Confirms bullish market structure. Look for long setups on the subsequent pullback.",
+        "rule": "Only count BOS from a swing that was formed by at least 2 candles on each side"
+      },
+      "bearish_bos": {
+        "identification": "4H candle closes below the most recent significant swing low",
+        "significance": "Confirms bearish market structure. Look for short setups on the subsequent pullback.",
+        "rule": "Same as bullish BOS"
+      },
+      "note": "BOS defines the bias on the entry timeframe (4H). It must align with the daily bias. A 4H bullish BOS against a daily bearish bias is a warning — do not trade it."
+    },
+
+    "change_of_character": {
+      "definition": "The first BOS in the opposite direction of the prevailing trend. Signals a potential reversal, not just a pullback. Lower weight than a trend-aligned BOS.",
+      "bullish_choch": "First higher high printed in a downtrend — possible reversal beginning. Use on 1H to time entries within a 4H zone.",
+      "bearish_choch": "First lower low printed in an uptrend — possible reversal beginning.",
+      "usage": "On the 1H confirmation frame: wait for a 1H CHoCH inside a valid 4H OB/FVG before entering. This is the confirmation trigger that price is reacting at the zone."
+    },
+
+    "equal_highs_lows": {
+      "definition": "Two or more swing highs/lows at approximately the same price level. These are visible liquidity magnets — price will likely sweep them before reversing.",
+      "usage": "Mark equal highs as buy-side liquidity targets (likely to be swept in a bearish context). Mark equal lows as sell-side liquidity targets (likely to be swept in a bullish context). Never place a take-profit at equal highs/lows — price will run through them.",
+      "trap_avoidance": "Do not buy breakouts above equal highs or sell breakdowns below equal lows. These are the stops being hunted."
+    }
+  },
+
+  "bias_criteria": {
+    "bullish": [
+      "Daily SMMA(21) is sloping upward",
+      "Price is trading above daily SMMA(21)",
+      "Daily chart shows higher highs and higher lows (bullish BOS confirmed)",
+      "Last significant daily move was a bullish displacement (strong up candle with volume)",
+      "Daily FVG or OB below current price (unmitigated — acts as support floor)"
+    ],
+    "bearish": [
+      "Daily SMMA(21) is sloping downward",
+      "Price is trading below daily SMMA(21)",
+      "Daily chart shows lower highs and lower lows (bearish BOS confirmed)",
+      "Last significant daily move was a bearish displacement",
+      "Daily FVG or OB above current price (unmitigated — acts as resistance ceiling)"
+    ],
+    "neutral_avoid": [
+      "Daily SMMA(21) is flat (within 0.3% slope over 5 days)",
+      "Price is chopping around the daily SMMA(21)",
+      "No clear BOS in either direction on the daily",
+      "Daily is printing inside bars or doji clusters — no conviction"
+    ]
+  },
+
+  "entry_rules": {
+    "long": {
+      "narrative": "Daily bullish bias confirmed. Price has pulled back to a 4H bullish order block or FVG. Ideally a liquidity sweep below a swing low just swept sell-side stops. 1H CHoCH to the upside fires inside the zone. Enter.",
+      "required_all": [
+        "Daily bias is BULLISH — daily SMMA(21) sloping up, price above it, higher highs and higher lows on daily",
+        "4H structure is bullish (last 4H BOS was to the upside)",
+        "Price has retraced into a valid 4H bullish order block OR bullish FVG — zone has not been previously closed through",
+        "1H CHoCH to the upside has printed inside or immediately above the 4H zone — confirms price is reacting",
+        "Entry candle (1H or 15m) shows rejection from the zone: lower wick, engulfing, or pin bar"
+      ],
+      "strong_confluence_at_least_2": [
+        "A sell-side liquidity sweep occurred at or just before the 4H OB/FVG (swept equal lows or swing low)",
+        "The 4H zone is also a daily OB or daily FVG (higher-timeframe zone confluence)",
+        "4H SMMA(50) is above price and acting as support at the same level as the OB/FVG",
+        "The displacement candle that created the 4H OB had volume > 1.5x the 20-period average",
+        "The retracement into the zone came on declining volume (weak sellers, no conviction)",
+        "An unmitigated daily FVG sits immediately below the entry zone (layered support)"
+      ],
+      "minimum_score": "All required conditions must pass. At least 2 confluence factors must be present. Score 4 or above out of 7 total confluence points.",
+      "minimum_rr": "2.5:1 — if the target (next liquidity or OB) does not offer at least 2.5R, skip the trade"
+    },
+    "short": {
+      "narrative": "Daily bearish bias confirmed. Price has retraced up to a 4H bearish order block or FVG. Ideally a liquidity sweep above a swing high just grabbed buy stops. 1H CHoCH to the downside fires inside the zone. Enter.",
+      "required_all": [
+        "Daily bias is BEARISH — daily SMMA(21) sloping down, price below it, lower highs and lower lows on daily",
+        "4H structure is bearish (last 4H BOS was to the downside)",
+        "Price has retraced into a valid 4H bearish order block OR bearish FVG",
+        "1H CHoCH to the downside has printed inside or immediately below the 4H zone",
+        "Entry candle shows rejection from the zone: upper wick, bearish engulfing, or shooting star"
+      ],
+      "strong_confluence_at_least_2": [
+        "A buy-side liquidity sweep occurred at or just before the 4H OB/FVG (swept equal highs or swing high)",
+        "The 4H zone is also a daily OB or daily FVG",
+        "4H SMMA(50) is below price and acting as resistance at the same level",
+        "The displacement candle that created the 4H OB had volume > 1.5x average",
+        "The retracement into the zone came on declining volume",
+        "An unmitigated daily FVG sits immediately above the entry zone (layered resistance)"
+      ],
+      "minimum_score": "All required conditions must pass. At least 2 confluence factors must be present.",
+      "minimum_rr": "2.5:1"
+    }
+  },
+
+  "exit_rules": {
+    "take_profit": [
+      "TP1 (50% position): Next opposing liquidity pool — nearest equal highs (for longs) or equal lows (for shorts). Move stop to breakeven when TP1 is hit.",
+      "TP2 (remaining 50%): Next significant HTF order block or FVG in the direction of the trade, OR the daily swing high/low that would constitute the next BOS.",
+      "Do NOT set TP at round numbers — institutions hunt them. Add 5–10 ticks beyond the obvious level.",
+      "If price sweeps TP2 and prints a strong rejection candle, close early rather than holding for more."
+    ],
+    "stop_loss": [
+      "Place stop 0.5x ATR(14) beyond the invalidation level of the zone — below the OB low for longs, above the OB high for shorts.",
+      "Never place stop at the exact swing high/low — it will be swept. Add buffer.",
+      "A 4H candle close through the entry zone invalidates the setup — close immediately, do not wait for the stop."
+    ],
+    "trailing": [
+      "Once TP1 is hit, trail the stop below each successive 1H higher low (for longs) or above each 1H lower high (for shorts).",
+      "If a new 4H FVG forms in the direction of the trade, move stop to protect below/above that FVG."
+    ],
+    "early_exit_signals": [
+      "A displacement candle in the opposite direction with volume > 1.5x average — close immediately.",
+      "Price prints a 1H CHoCH against the trade direction before reaching TP1.",
+      "A higher-timeframe OB or FVG in the opposite direction that was not accounted for at entry."
+    ]
+  },
 
   "risk_rules": [
-    "Risk maximum 1% of portfolio per trade",
-    "Maximum trade size capped by MAX_TRADE_SIZE_USD in .env",
-    "Maximum trades per day capped by MAX_TRADES_PER_DAY in .env",
-    "Do not trade if price is more than 1.5% away from VWAP — overextended",
-    "Paper trade first — validate this strategy on your specific asset before going live"
+    "Risk exactly 1% of portfolio per trade — no exceptions. Position size is derived from stop distance, not fixed lot size.",
+    "Maximum 2 open positions simultaneously. If 2 trades are open, do not open a third until one closes.",
+    "Maximum 2 trades per day. More setups appearing means the market is choppy — not that more opportunity exists.",
+    "No trading in the 30 minutes before or after a major scheduled news event (CPI, FOMC, NFP). The spread widens and OBs get violated on the spike.",
+    "If the last 3 trades were losses, stop trading for the rest of the day. Do not revenge-trade.",
+    "Paper trade every new asset for a minimum of 20 trades before going live. The zones are asset-specific.",
+    "Do not trade if the daily candle is an inside bar or has a range smaller than 0.8x the 14-day ATR — no institutional conviction.",
+    "Minimum RR before entry is 2.5:1. If the math does not work, skip the trade."
   ],
 
-  "notes": "Scalping strategy — designed for 1m to 5m timeframes. RSI(3) is intentionally fast and sensitive. Do not apply to higher timeframes."
+  "filters": {
+    "mandatory_avoid": [
+      "Counter-trend trades — if daily is bearish, do not take 4H long setups regardless of how clean they look",
+      "Trading into an unmitigated higher-timeframe OB or FVG in the opposite direction — price will likely reach it",
+      "Entering a zone that has already been tested twice — third test of a zone is a break, not a bounce",
+      "Any setup where the stop must be placed more than 2x ATR(14) from entry — risk/reward becomes unworkable",
+      "Trading during low-liquidity windows: weekends on crypto, first 15 minutes of session open, last 15 minutes before close",
+      "Breakout trades above equal highs or below equal lows — these are liquidity grabs, not momentum entries"
+    ],
+    "preferred_sessions": [
+      "London open (08:00–12:00 UTC) — highest institutional participation, cleanest OB reactions",
+      "New York open (13:00–17:00 UTC) — second-highest liquidity, frequent sweeps and reversals",
+      "London/NY overlap (13:00–16:00 UTC) — premium window for high-volume setups"
+    ],
+    "avoid_sessions": [
+      "Asian session (00:00–07:00 UTC) for BTC — lower volume, false signals, OBs frequently violated",
+      "Sunday open — gaps and erratic price action"
+    ]
+  },
+
+  "confluence_scoring": {
+    "description": "Each setup is scored before entry. Minimum score of 4 required. Do not take a trade below 4.",
+    "conditions": [
+      { "condition": "Daily bias aligns with trade direction",                  "points": 2, "required": true  },
+      { "condition": "4H BOS in trade direction",                               "points": 1, "required": true  },
+      { "condition": "Entry at valid 4H order block",                           "points": 2, "required": false },
+      { "condition": "Entry at 4H FVG (standalone)",                            "points": 1, "required": false },
+      { "condition": "OB and FVG overlap at entry zone",                        "points": 1, "required": false },
+      { "condition": "Liquidity sweep into the entry zone",                     "points": 2, "required": false },
+      { "condition": "1H CHoCH confirmation inside the zone",                   "points": 2, "required": true  },
+      { "condition": "Displacement candle volume > 1.5x average",               "points": 1, "required": false },
+      { "condition": "Retracement volume declining into zone",                  "points": 1, "required": false },
+      { "condition": "Daily OB or FVG at same level (HTF confluence)",          "points": 2, "required": false },
+      { "condition": "4H SMMA(50) provides additional S/R at zone",             "points": 1, "required": false },
+      { "condition": "Clean RR ≥ 3:1",                                          "points": 1, "required": false }
+    ],
+    "minimum_score": 4,
+    "max_possible": 17,
+    "tiers": {
+      "A_grade": "Score 10+  — maximum size (1% risk)",
+      "B_grade": "Score 7–9  — standard size (0.75% risk)",
+      "C_grade": "Score 4–6  — reduced size (0.5% risk)",
+      "skip":    "Score < 4  — do not trade"
+    }
+  },
+
+  "pattern_library": {
+    "sweep_and_reverse": {
+      "description": "Price sweeps a liquidity pool (equal highs or lows), lands in an OB or FVG, then 1H CHoCH fires. The clean version of this strategy.",
+      "frequency": "2–4 times per week on 4H BTCUSDT",
+      "win_rate_target": ">70%"
+    },
+    "ob_retest_after_bos": {
+      "description": "4H BOS occurs. Price pulls back to retest the OB that caused the BOS. 1H CHoCH fires at the OB. Enter.",
+      "frequency": "Most common setup",
+      "win_rate_target": ">65%"
+    },
+    "fvg_fill_with_rejection": {
+      "description": "Strong displacement creates an FVG. Price retraces to partially fill the FVG but rejects before full fill (rejecting at the 50% level). Volume declines on the fill.",
+      "frequency": "Moderate",
+      "win_rate_target": ">60%"
+    },
+    "htf_ob_reaction": {
+      "description": "Price reaches a daily OB or daily FVG that perfectly aligns with a 4H OB. HTF confluence is maximum. This is the highest-conviction setup.",
+      "frequency": "Rare — 1–2 times per month",
+      "win_rate_target": ">80%"
+    }
+  },
+
+  "notes": [
+    "This strategy trades infrequently by design. 2–4 high-quality setups per week is the target — not per day.",
+    "If you find yourself looking for setups, you are forcing trades. Setups find you when structure is clear.",
+    "The daily bias check is the most important filter. Everything downstream of a wrong daily bias is noise.",
+    "A missed trade is not a loss. An impulsive trade is.",
+    "Journal every trade: score, what aligned, what didn't, what you ignored. Review weekly.",
+    "SMC concepts work because institutions create these footprints consistently — human psychology at the institutional level is predictable."
+  ]
 }
