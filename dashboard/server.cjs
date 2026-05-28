@@ -56,6 +56,22 @@ const server = http.createServer((req, res) => {
     return serveFile(res, path.join(__dirname, "index.html"), "text/html; charset=utf-8");
   }
 
+  if (url === "/manifest.json") {
+    return serveFile(res, path.join(__dirname, "manifest.json"), "application/manifest+json");
+  }
+
+  if (url === "/sw.js") {
+    return fs.readFile(path.join(__dirname, "sw.js"), (err, data) => {
+      if (err) return send(res, 500, err.message);
+      send(res, 200, data, { "Content-Type": "application/javascript", "Cache-Control": "no-cache" });
+    });
+  }
+
+  if (url === "/icons/icon-192.png" || url === "/icons/icon-512.png") {
+    const name = url === "/icons/icon-192.png" ? "icon-192.png" : "icon-512.png";
+    return serveFile(res, path.join(__dirname, "icons", name), "image/png");
+  }
+
   if (url === "/architecture" || url === "/architecture.html") {
     return serveFile(res, path.join(__dirname, "architecture.html"), "text/html; charset=utf-8");
   }

@@ -1,0 +1,26 @@
+{
+  "name": "Claude Execute",
+  "short_name": "CE Terminal",
+  "description": "Automated SMC trading terminal — live BTC/USDT",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070b12",
+  "theme_color": "#00c8ff",
+  "orientation": "landscape",
+  "categories": ["finance"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
