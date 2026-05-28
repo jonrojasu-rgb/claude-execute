@@ -5,7 +5,6 @@
   },
   "deploy": {
     "startCommand": "node dashboard/server.cjs",
-    "cronSchedule": "0 */4 * * *",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
