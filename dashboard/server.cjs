@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
-const PORT = process.env.DASHBOARD_PORT || 3737;
+const PORT = process.env.PORT || process.env.DASHBOARD_PORT || 3737;
 
 // Minimal .env loader — no dependency on dotenv
 (() => {
