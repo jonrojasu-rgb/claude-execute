@@ -286,6 +286,20 @@ footer{
 .ins-dist{font-size:9px;white-space:nowrap;text-align:right}
 .ins-dist.rd{color:var(--red)}.ins-dist.gn{color:var(--green)}.ins-dist.nm{color:var(--text-dim)}
 
+/* ── Fullscreen chart ──────────────────────────────────── */
+.fs-btn{
+  display:none;background:transparent;border:1px solid var(--border2);
+  color:var(--text-dim);font-family:var(--mono);font-size:10px;
+  padding:3px 8px;cursor:pointer;transition:all .15s;letter-spacing:.1em;
+}
+.fs-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.chart-panel.fullscreen{
+  position:fixed !important;inset:0 !important;z-index:500;
+  display:flex;flex-direction:column;background:var(--surface);
+}
+.chart-panel.fullscreen .chart-wrap{flex:1 !important;height:auto !important}
+.chart-panel.fullscreen .ew-panel{display:none !important}
+
 /* ── Mobile ────────────────────────────────────────────── */
 @media(max-width:768px){
   html,body{overflow:auto}
@@ -293,11 +307,12 @@ footer{
   header{flex-wrap:wrap;padding:10px 12px;height:auto;gap:8px}
   .btc-ticker{order:3;width:100%;justify-content:flex-start;flex-wrap:wrap}
   .hdr-right{margin-left:auto}
-  .stats{grid-template-columns:repeat(4,1fr)}
+  .stats{grid-template-columns:repeat(2,1fr)}
   .main{grid-template-columns:1fr;grid-template-rows:auto auto}
   .rcol{grid-template-rows:auto auto auto}
   .ew-panel{display:none}
-  .chart-wrap{height:220px;position:relative}
+  .chart-wrap{height:60vh;position:relative}
+  .fs-btn{display:inline-block}
   .drawer{position:static;transform:none;max-height:none;display:none}
   .drawer.open{display:flex}
   .dgrid{grid-template-columns:1fr}
@@ -393,6 +408,7 @@ footer{
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:10px;color:var(--text-dim);letter-spacing:.1em">BYBIT DATA</span>
           <span class="wsd" id="wsd">●</span>
+          <button class="fs-btn" id="fs-btn">⛶ FULL</button>
         </div>
       </div>
       <div class="chart-wrap">
@@ -1231,6 +1247,25 @@ document.getElementById('d-close').addEventListener('click',()=>{
   document.getElementById('drawer').classList.remove('open');
   renderFeed();
 });
+
+// ── Chart fullscreen ───────────────────────────────────────────────────────────
+(function(){
+  const btn   = document.getElementById('fs-btn');
+  const panel = document.querySelector('.chart-panel');
+  if (!btn || !panel) return;
+  btn.addEventListener('click', () => {
+    const on = panel.classList.toggle('fullscreen');
+    btn.textContent = on ? '✕ EXIT' : '⛶ FULL';
+    document.body.style.overflow = on ? 'hidden' : '';
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && panel.classList.contains('fullscreen')) {
+      panel.classList.remove('fullscreen');
+      btn.textContent = '⛶ FULL';
+      document.body.style.overflow = '';
+    }
+  });
+})();
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
 btcChart = new BtcChart();
