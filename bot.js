@@ -832,7 +832,7 @@ function buildTradeAlert(entry) {
 if (process.argv.includes("--tax-summary")) {
   generateTaxSummary();
 } else {
-  const HOUR_MS = 60 * 60 * 1000;
+  const HOUR_MS = 15 * 60 * 1000;
   const runSafe = () => run().catch((err) => console.error("Bot error:", err));
   runSafe();
   setInterval(runSafe, HOUR_MS);
