@@ -34,6 +34,11 @@ function checkOnboarding() {
         "MAX_TRADES_PER_DAY=2",
         "PAPER_TRADING=true",
         "SYMBOL=BTCUSDT",
+        "",
+        "# Telegram notifications (optional — leave blank to disable)",
+        "# Bot token from @BotFather · Chat ID from @userinfobot",
+        "TELEGRAM_BOT_TOKEN=",
+        "TELEGRAM_CHAT_ID=",
       ].join("\n") + "\n",
     );
     try { execSync("open .env"); } catch {}
@@ -715,6 +720,8 @@ async function run() {
         logEntry.error = err.message;
       }
     }
+
+    await sendTelegram(buildTradeAlert(logEntry));
   }
 
   log.trades.push(logEntry);
@@ -722,6 +729,82 @@ async function run() {
   console.log(`\nDecision log saved → ${LOG_FILE}`);
   writeTradeCsv(logEntry);
   console.log("═══════════════════════════════════════════════════════════\n");
+}
+
+// ─── Telegram Notifications ───────────────────────────────────────────────────
+
+async function sendTelegram(text) {
+  const token  = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+  try {
+    const res  = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      console.log("📱 Telegram notification sent");
+    } else {
+      console.log(`⚠️  Telegram error: ${data.description}`);
+    }
+  } catch (err) {
+    console.log(`⚠️  Telegram failed: ${err.message}`);
+  }
+}
+
+function buildTradeAlert(entry) {
+  const { symbol, direction, price, score, tier, conditions, tradeSize,
+          paperTrading, orderId, error, indicators } = entry;
+
+  const verb     = direction === "bearish" ? "SHORT ▼" : "LONG ▲";
+  const modeTag  = paperTrading ? "📋 PAPER" : "🔴 LIVE";
+  const gradeIcon = { A: "🟢", B: "🔵", C: "🟡" }[tier] ?? "⚪";
+
+  // Conditions block — trim long dynamic labels for readability
+  const condLines = (conditions || []).map((c) => {
+    const icon  = c.pass ? "✅" : "❌";
+    const label = c.label.replace(/ — .+/, "").slice(0, 52);
+    const note  = c.actual ? `  <i>${String(c.actual).slice(0, 48)}</i>` : "";
+    return `${icon} ${label}${note}`;
+  }).join("\n");
+
+  // Zone
+  const zone = indicators?.activeZone
+    ? `\n🎯 Zone: ${indicators.activeZone.replace("order_block", "Order Block").replace("fvg", "FVG")}`
+    : "";
+
+  // Stop loss
+  const atr  = indicators?.atr;
+  const stop = atr
+    ? (() => {
+        const buf = (atr * 0.5).toFixed(0);
+        const lvl = direction === "bullish"
+          ? ((indicators?.activeZone ? parseFloat(indicators.activeZone.match(/\$(\d+)/)?.[1] ?? price) : price) - atr * 0.5).toFixed(0)
+          : ((indicators?.activeZone ? parseFloat(indicators.activeZone.match(/\$(\d+)–\$(\d+)/)?.[2] ?? price) : price) + atr * 0.5).toFixed(0);
+        return `\n🛑 Stop: $${Number(lvl).toLocaleString("en-US")} (0.5×ATR)`;
+      })()
+    : "";
+
+  // Order confirmation
+  const orderLine = error
+    ? `\n❌ Order error: ${error}`
+    : orderId
+      ? `\n🔖 ${paperTrading ? "Paper ID" : "Order ID"}: <code>${orderId}</code>`
+      : "";
+
+  return [
+    `🤖 <b>CLAUDE EXECUTE — SIGNAL</b>`,
+    ``,
+    `<b>${verb} ${symbol || "BTCUSDT"}</b>  ${modeTag}`,
+    `💰 Price: <b>$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>`,
+    `${gradeIcon} Score: <b>${score}/14</b>  ·  Grade: <b>${tier.toUpperCase()}</b>`,
+    `💵 Size: $${tradeSize.toFixed(2)}${zone}${stop}${orderLine}`,
+    ``,
+    `<b>Conditions</b>`,
+    condLines,
+  ].join("\n");
 }
 
 if (process.argv.includes("--tax-summary")) {
