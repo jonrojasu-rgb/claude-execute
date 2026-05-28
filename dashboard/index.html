@@ -126,7 +126,7 @@ header{
 .wsd.on{color:var(--green)}
 
 /* ── Right column ──────────────────────────────────────── */
-.rcol{display:grid;grid-template-rows:auto 1fr;gap:1px;background:var(--border);min-height:0;overflow:hidden}
+.rcol{display:grid;grid-template-rows:auto auto 1fr;gap:1px;background:var(--border);min-height:0;overflow:hidden}
 
 /* ── Gauge ─────────────────────────────────────────────── */
 .gauge-panel{background:var(--surface);display:flex;flex-direction:column}
@@ -228,6 +228,58 @@ footer{
 /* ── Empty state ───────────────────────────────────────── */
 .empty{padding:22px;text-align:center;color:var(--text-dim);font-size:11px;letter-spacing:.14em}
 
+/* ── Market Insights ─────────────────────────────────────── */
+.insights-panel{background:var(--surface);display:flex;flex-direction:column;flex-shrink:0}
+.ins-body{padding:7px 11px 10px;display:flex;flex-direction:column;gap:6px}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px}
+.ins-cell{display:flex;flex-direction:column;gap:1px}
+.ins-lbl{font-size:8px;letter-spacing:.16em;color:var(--text-dim);text-transform:uppercase}
+.ins-val{font-size:13px;font-weight:700;color:var(--text-hi);line-height:1.2;letter-spacing:.02em}
+.ins-val.gn{color:var(--green)}.ins-val.rd{color:var(--red)}.ins-val.am{color:var(--amber)}.ins-val.cy{color:var(--cyan)}
+.ins-sub{font-size:9px;color:var(--text-dim);margin-top:1px}
+.ins-shd{font-size:8px;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase;border-top:1px solid var(--border);padding-top:5px;margin-top:1px}
+.ins-levels{display:flex;flex-direction:column;gap:2px}
+.ins-row{display:grid;grid-template-columns:30px 1fr auto;gap:4px;align-items:center}
+.ins-tag{font-size:8px;font-weight:700;letter-spacing:.06em;padding:1px 3px;text-align:center;border:1px solid}
+.ins-tag.rd{color:var(--red);border-color:rgba(255,61,87,.3)}
+.ins-tag.gn{color:var(--green);border-color:rgba(0,230,118,.3)}
+.ins-tag.cy{color:var(--cyan);border-color:rgba(0,200,255,.3)}
+.ins-tag.am{color:var(--amber);border-color:rgba(255,179,0,.3)}
+.ins-tag.nm{color:var(--text-dim);border-color:var(--border)}
+.ins-name{font-size:9px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ins-price{font-size:10px;color:var(--text-hi);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ins-price.rd{color:var(--red)}.ins-price.gn{color:var(--green)}.ins-price.cy{color:var(--cyan)}.ins-price.am{color:var(--amber)}
+.ins-sval{font-size:9px;color:var(--text-dim);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:118px}
+.ins-sval.am{color:var(--amber)}.ins-sval.cy{color:var(--cyan)}.ins-sval.gn{color:var(--green)}
+
+/* ── Elliott Wave Panel ─────────────────────────────────── */
+.ew-panel{flex-shrink:0;background:var(--surface2);border-top:1px solid var(--border);padding:7px 14px 9px;display:flex;flex-direction:column;gap:6px}
+.ew-hdr{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow:hidden}
+.ew-title{font-size:8px;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase;flex-shrink:0}
+.ew-pat{font-size:11px;font-weight:700;letter-spacing:.07em;flex-shrink:0}
+.ew-pat.hi{color:var(--green)}.ew-pat.md{color:var(--cyan)}.ew-pat.lo{color:var(--text-dim)}
+.ew-dir{font-size:10px;font-weight:600;flex-shrink:0}
+.ew-dir.gn{color:var(--green)}.ew-dir.rd{color:var(--red)}
+.ew-conf{margin-left:auto;font-size:9px;letter-spacing:.06em;flex-shrink:0}
+.ew-conf.gn{color:var(--green)}.ew-conf.am{color:var(--amber)}.ew-conf.rd{color:var(--red)}
+.ew-body{display:flex;align-items:flex-start;gap:10px;min-height:0}
+.ew-nodes{flex:1;display:flex;align-items:center;gap:1px;overflow:hidden;min-width:0}
+.ew-nd{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
+.ew-wl{font-size:12px;font-weight:700}
+.ew-wl.done{color:var(--cyan)}.ew-wl.active{color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.6)}
+.ew-wl.abc{color:var(--green)}.ew-wl.abc-act{color:var(--amber);text-shadow:0 0 10px rgba(255,179,0,.6)}
+.ew-wp{font-size:8px;color:var(--text-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ew-arr{font-size:11px;padding:0 2px;align-self:center;padding-bottom:16px;flex-shrink:0}
+.ew-arr.up{color:rgba(0,230,118,.55)}.ew-arr.dn{color:rgba(255,61,87,.55)}
+.ew-tgt{flex-shrink:0;text-align:right;border-left:1px solid var(--border);padding-left:10px;min-width:148px}
+.ew-tlbl{font-size:8px;letter-spacing:.16em;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px}
+.ew-tzone{font-size:12px;font-weight:700;color:var(--amber);letter-spacing:.02em}
+.ew-twv{font-size:9px;color:var(--text-dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:148px}
+.ew-tfib{font-size:8px;color:var(--text-dim)}
+.ew-fibs{font-size:9px;color:var(--text-dim);letter-spacing:.04em;border-top:1px solid var(--border);padding-top:4px}
+.ins-dist{font-size:9px;white-space:nowrap;text-align:right}
+.ins-dist.rd{color:var(--red)}.ins-dist.gn{color:var(--green)}.ins-dist.nm{color:var(--text-dim)}
+
 /* ── Mobile ────────────────────────────────────────────── */
 @media(max-width:768px){
   html,body{overflow:auto}
@@ -237,7 +289,8 @@ footer{
   .hdr-right{margin-left:auto}
   .stats{grid-template-columns:repeat(4,1fr)}
   .main{grid-template-columns:1fr;grid-template-rows:auto auto}
-  .rcol{grid-template-rows:auto auto}
+  .rcol{grid-template-rows:auto auto auto}
+  .ew-panel{display:none}
   .chart-wrap{height:220px;position:relative}
   .drawer{position:static;transform:none;max-height:none;display:none}
   .drawer.open{display:flex}
@@ -332,12 +385,31 @@ footer{
       <div class="ph">
         <span class="pt">BTC / USDT &nbsp;·&nbsp; 4H</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:10px;color:var(--text-dim);letter-spacing:.1em">BINANCE LIVE</span>
+          <span style="font-size:10px;color:var(--text-dim);letter-spacing:.1em">BYBIT LIVE</span>
           <span class="wsd" id="wsd">●</span>
         </div>
       </div>
       <div class="chart-wrap">
         <canvas id="chart"></canvas>
+      </div>
+      <!-- ELLIOTT WAVE -->
+      <div class="ew-panel">
+        <div class="ew-hdr">
+          <span class="ew-title">ELLIOTT WAVE · 4H</span>
+          <span class="ew-pat lo" id="ew-pat">SCANNING…</span>
+          <span class="ew-dir" id="ew-dir"></span>
+          <span class="ew-conf" id="ew-conf"></span>
+        </div>
+        <div class="ew-body">
+          <div class="ew-nodes" id="ew-nodes"><span style="font-size:9px;color:var(--text-dim)">Loading chart data…</span></div>
+          <div class="ew-tgt">
+            <div class="ew-tlbl">Next Target</div>
+            <div class="ew-tzone" id="ew-tzone">—</div>
+            <div class="ew-twv" id="ew-twv">—</div>
+            <div class="ew-tfib" id="ew-tfib">—</div>
+          </div>
+        </div>
+        <div class="ew-fibs" id="ew-fibs">—</div>
       </div>
     </section>
 
@@ -374,6 +446,42 @@ footer{
           <span class="zone am">C 4–6</span>
           <span class="zone cy">B 7–9</span>
           <span class="zone gn">A 10+</span>
+        </div>
+      </section>
+
+      <!-- MARKET INSIGHTS -->
+      <section class="insights-panel">
+        <div class="ph">
+          <span class="pt">Market Insights</span>
+          <span class="pbadge" id="ins-ts">—</span>
+        </div>
+        <div class="ins-body">
+          <div class="ins-grid">
+            <div class="ins-cell">
+              <div class="ins-lbl">1D Structure</div>
+              <div class="ins-val" id="ins-struct">—</div>
+              <div class="ins-sub" id="ins-struct-sub">—</div>
+            </div>
+            <div class="ins-cell">
+              <div class="ins-lbl">Session</div>
+              <div class="ins-val" id="ins-session">—</div>
+              <div class="ins-sub" id="ins-session-sub">—</div>
+            </div>
+            <div class="ins-cell">
+              <div class="ins-lbl">Volatility · ATR(14)</div>
+              <div class="ins-val" id="ins-atr">—</div>
+              <div class="ins-sub" id="ins-atr-sub">—</div>
+            </div>
+            <div class="ins-cell">
+              <div class="ins-lbl">Active Zone</div>
+              <div class="ins-val" id="ins-zone">NONE</div>
+              <div class="ins-sub" id="ins-zone-sub">—</div>
+            </div>
+          </div>
+          <div class="ins-shd">Key S / R Levels</div>
+          <div class="ins-levels" id="ins-sr"></div>
+          <div class="ins-shd">Next SMC Levels</div>
+          <div class="ins-levels" id="ins-smc"></div>
         </div>
       </section>
 
@@ -465,6 +573,7 @@ class BtcChart {
     this._resize();
     new ResizeObserver(()=>{ this._resize(); this.dirty=true; }).observe(this.cvs.parentElement);
     await this._fetch();
+    renderEW();
     this._ws();
     this._loop();
   }
@@ -586,6 +695,428 @@ function setGauge(score, maxScore, tier, dir){
   de.style.color=dir==='bullish'?'var(--green)':dir==='bearish'?'var(--red)':'var(--text-dim)';
 }
 
+// ── Market Insights ────────────────────────────────────────────────────────────
+let btcChart = null;
+
+function currentSession() {
+  const h = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
+  if (h >= 13 && h < 17) return { name:'LONDON/NY',  cls:'cy', sub:'peak overlap'    };
+  if (h >= 17 && h < 22) return { name:'NEW YORK',   cls:'am', sub:'high volatility' };
+  if (h >= 8  && h < 13) return { name:'LONDON',     cls:'gn', sub:'high volatility' };
+  if (h >= 0  && h < 9)  return { name:'ASIA',       cls:'',   sub:'low volatility'  };
+  return                         { name:'ASIA',       cls:'',   sub:'closing out'     };
+}
+
+function pivotLevels(data, price) {
+  const lb=3, res=[], sup=[];
+  for(let i=lb; i<data.length-lb; i++){
+    let hi=true, lo=true;
+    for(let j=i-lb; j<=i+lb; j++){
+      if(j===i) continue;
+      if(data[j].h>=data[i].h) hi=false;
+      if(data[j].l<=data[i].l) lo=false;
+    }
+    if(hi && data[i].h > price*1.001) res.push(data[i].h);
+    if(lo && data[i].l < price*0.999) sup.push(data[i].l);
+  }
+  res.sort((a,b)=>a-b); sup.sort((a,b)=>b-a);
+  return { res, sup };
+}
+
+function detectOBs(data) {
+  const avgBody = data.slice(-20).reduce((s,c)=>s+Math.abs(c.c-c.o),0)/20;
+  const obs = [];
+  for(let i=1; i<data.length-1; i++){
+    const cur=data[i], next=data[i+1];
+    if(Math.abs(next.c-next.o) < avgBody*1.2) continue;
+    if(cur.c<cur.o && next.c>next.o){
+      const violated=data.slice(i+1).some(c=>c.c<cur.l);
+      if(!violated) obs.push({type:'bullish',lo:cur.l,hi:cur.h});
+    }
+    if(cur.c>cur.o && next.c<next.o){
+      const violated=data.slice(i+1).some(c=>c.c>cur.h);
+      if(!violated) obs.push({type:'bearish',lo:cur.l,hi:cur.h});
+    }
+  }
+  return obs.slice(-8);
+}
+
+function renderInsights() {
+  const sess = currentSession();
+  const sEl = document.getElementById('ins-session');
+  sEl.textContent = sess.name;
+  sEl.className = 'ins-val' + (sess.cls ? ' '+sess.cls : '');
+  document.getElementById('ins-session-sub').textContent = sess.sub;
+
+  const last = [...(state.log.trades||[])].reverse().find(t=>t.price&&t.indicators);
+  const price = last?.price ?? btcChart?.live;
+  if (!last || !price) return;
+
+  document.getElementById('ins-ts').textContent = pTime(new Date(last.timestamp));
+
+  // 1D structure
+  const bias = last.indicators.dailyBias||'neutral';
+  const bCls = bias==='bullish'?'gn':bias==='bearish'?'rd':'';
+  const sStr = document.getElementById('ins-struct');
+  sStr.textContent = bias.toUpperCase();
+  sStr.className = 'ins-val'+(bCls?' '+bCls:'');
+  const h4Cond = (last.conditions||[]).find(c=>c.label&&c.label.includes('4H BOS'));
+  const h4str = h4Cond?.actual?.replace('4H structure: ','')||last.indicators.structure||'—';
+  document.getElementById('ins-struct-sub').textContent = '4H: '+h4str;
+
+  // Volatility
+  const atr = last.indicators.atr;
+  if(atr){
+    const pct = ((atr/price)*100).toFixed(2);
+    const aC = pct>2?'rd':pct>1?'am':'gn';
+    const voltLabel = +pct>2?'HIGH':+pct>1?'MEDIUM':'LOW';
+    const aEl = document.getElementById('ins-atr');
+    aEl.textContent = '$'+Math.round(atr).toLocaleString('en-US');
+    aEl.className = 'ins-val '+aC;
+    document.getElementById('ins-atr-sub').textContent = pct+'% · '+voltLabel;
+  }
+
+  // Active zone
+  const zStr = last.indicators.activeZone;
+  const zEl = document.getElementById('ins-zone');
+  if(zStr){
+    zEl.textContent = zStr.includes('order_block')?'ORDER BLOCK':'FVG';
+    zEl.className = 'ins-val am';
+    let zoneSub = zStr.replace('order_block ','').replace('fvg ','');
+    const zm = zStr.match(/\$(\d+)–\$(\d+)/);
+    if(zm) {
+      const zLo=+zm[1], zHi=+zm[2];
+      const inZone = price>=zLo && price<=zHi;
+      const dist = inZone ? 0 : Math.min(Math.abs(price-zLo),Math.abs(price-zHi));
+      zoneSub += inZone ? ' · AT ZONE' : ` · ${((dist/price)*100).toFixed(1)}% away`;
+    }
+    document.getElementById('ins-zone-sub').textContent = zoneSub;
+  } else {
+    zEl.textContent = 'NONE'; zEl.className = 'ins-val';
+    document.getElementById('ins-zone-sub').textContent = 'price not in zone';
+  }
+
+  // S/R levels
+  const smma21 = last.indicators.smma21daily;
+  const smma50 = last.indicators.smma50h4;
+  const { res, sup } = btcChart?.data?.length ? pivotLevels(btcChart.data, price) : { res:[], sup:[] };
+  const fmtP = v => '$'+Math.round(v).toLocaleString('en-US');
+
+  const srRows = [];
+  if(res[1]) srRows.push({ tag:'R2', tc:'rd', lbl:'Resistance 2', val:res[1], pc:'rd' });
+  if(res[0]) srRows.push({ tag:'R1', tc:'rd', lbl:'Resistance',   val:res[0], pc:'rd' });
+  if(smma21&&smma21>price) srRows.push({ tag:'MA', tc:'cy', lbl:'SMMA(21) Daily', val:smma21, pc:'cy' });
+  if(smma50&&smma50>price) srRows.push({ tag:'MA', tc:'cy', lbl:'SMMA(50) 4H',    val:smma50, pc:'cy' });
+  srRows.push({ tag:'▸', tc:'nm', lbl:'Current Price', val:price, pc:'' });
+  if(smma50&&smma50<price) srRows.push({ tag:'MA', tc:'cy', lbl:'SMMA(50) 4H',    val:smma50, pc:'cy' });
+  if(smma21&&smma21<price) srRows.push({ tag:'MA', tc:'cy', lbl:'SMMA(21) Daily', val:smma21, pc:'cy' });
+  if(sup[0]) srRows.push({ tag:'S1', tc:'gn', lbl:'Support',   val:sup[0], pc:'gn' });
+  if(sup[1]) srRows.push({ tag:'S2', tc:'gn', lbl:'Support 2', val:sup[1], pc:'gn' });
+  srRows.sort((a,b)=>b.val-a.val);
+
+  document.getElementById('ins-sr').innerHTML = srRows.map(r=>{
+    const isPrice = r.tag==='▸';
+    const dist = isPrice ? null : (r.val-price)/price*100;
+    const dStr = dist==null ? '' : `<span class="ins-dist ${dist>0?'rd':'gn'}">${dist>0?'+':''}${dist.toFixed(1)}%</span>`;
+    return `<div class="ins-row" style="grid-template-columns:30px 1fr auto 34px"><span class="ins-tag ${r.tc}">${r.tag}</span><span class="ins-name">${r.lbl}</span><span class="ins-price ${r.pc}">${fmtP(r.val)}</span>${dStr}</div>`;
+  }).join('') || '<div style="font-size:9px;color:var(--text-dim)">Loading chart data…</div>';
+
+  // Next SMC levels
+  const conds = last.conditions||[];
+  const obC  = conds.find(c=>c.label?.includes('4H order block'));
+  const fvgC = conds.find(c=>c.label?.includes('fair value gap'));
+  const swpC = conds.find(c=>c.label?.includes('Liquidity sweep'));
+  const choC = conds.find(c=>c.label?.includes('CHoCH'));
+
+  // ATR-based targets for next levels
+  const dir = last.direction;
+  const target1 = atr && price ? fmtP(dir==='bearish' ? price-atr : price+atr) : null;
+  const target2 = atr && price ? fmtP(dir==='bearish' ? price-atr*2 : price+atr*2) : null;
+
+  const smcRows = [];
+  if(obC)  smcRows.push({ tag:'OB',    tc:obC.pass  ?'am':'nm', lbl:obC.pass  ?'AT Order Block':'OB Watch',  val:obC.actual ||'—', vc:obC.pass  ?'am':'' });
+  if(fvgC) smcRows.push({ tag:'FVG',   tc:fvgC.pass ?'am':'nm', lbl:fvgC.pass ?'AT FVG'        :'FVG Watch', val:fvgC.actual||'—', vc:fvgC.pass ?'am':'' });
+  if(swpC) smcRows.push({ tag:'LIQ',   tc:swpC.pass ?'cy':'nm', lbl:swpC.pass ?'Swept'         :'Liquidity', val:swpC.actual||'—', vc:swpC.pass ?'cy':'' });
+  if(choC) smcRows.push({ tag:'CHoCH', tc:choC.pass ?'gn':'nm', lbl:choC.pass ?'Confirmed'     :'Watching',  val:choC.actual||'—', vc:choC.pass ?'gn':'' });
+  // Distance to nearest OBs from chart data
+  if(btcChart?.data?.length && price) {
+    const obs = detectOBs(btcChart.data);
+    const bearOBs = obs.filter(o=>o.type==='bearish'&&o.lo>price*1.001).sort((a,b)=>a.lo-b.lo);
+    const bullOBs = obs.filter(o=>o.type==='bullish'&&o.hi<price*0.999).sort((a,b)=>b.hi-a.hi);
+    if(bearOBs[0]&&!obC?.pass){
+      const d=((bearOBs[0].lo-price)/price*100).toFixed(1);
+      smcRows.push({tag:'OB↑',tc:'am',lbl:'Bear OB above',val:`+${d}% · $${Math.round(bearOBs[0].lo).toLocaleString()}`,vc:'am'});
+    }
+    if(bullOBs[0]&&!obC?.pass){
+      const d=((price-bullOBs[0].hi)/price*100).toFixed(1);
+      smcRows.push({tag:'OB↓',tc:'cy',lbl:'Bull OB below',val:`-${d}% · $${Math.round(bullOBs[0].hi).toLocaleString()}`,vc:'cy'});
+    }
+  }
+  if(target1) smcRows.push({ tag:'1R', tc:'am', lbl:'1×ATR Target', val:target1, vc:'am' });
+  if(target2) smcRows.push({ tag:'2R', tc:'rd', lbl:'2×ATR Target', val:target2, vc:'rd' });
+
+  document.getElementById('ins-smc').innerHTML = smcRows.map(r=>
+    `<div class="ins-row" style="grid-template-columns:38px 1fr auto"><span class="ins-tag ${r.tc}">${r.tag}</span><span class="ins-name">${r.lbl}</span><span class="ins-sval ${r.vc}">${r.val}</span></div>`
+  ).join('') || '<div style="font-size:9px;color:var(--text-dim)">Waiting for analysis…</div>';
+}
+
+// ── Elliott Wave Detection ─────────────────────────────────────────────────────
+
+function ewSwings(candles, lb) {
+  const pts = [];
+  for (let i = lb; i < candles.length - lb; i++) {
+    let hi = true, lo = true;
+    for (let j = i - lb; j <= i + lb; j++) {
+      if (j === i) continue;
+      if (candles[j].h >= candles[i].h) hi = false;
+      if (candles[j].l <= candles[i].l) lo = false;
+    }
+    if (hi) pts.push({ p: candles[i].h, type: 'H', idx: i });
+    if (lo) pts.push({ p: candles[i].l, type: 'L', idx: i });
+  }
+  pts.sort((a, b) => a.idx - b.idx);
+  const alt = [];
+  for (const pt of pts) {
+    if (!alt.length) { alt.push(pt); continue; }
+    const last = alt[alt.length - 1];
+    if (last.type !== pt.type) { alt.push(pt); }
+    else if ((last.type==='H'&&pt.p>last.p)||(last.type==='L'&&pt.p<last.p)) alt[alt.length-1]=pt;
+  }
+  return alt.slice(-12);
+}
+
+function fibScore(ratio, targets) {
+  let best = 0;
+  for (const [t, s] of targets) {
+    const d = Math.abs(ratio - t) / t;
+    if (d <= 0.09) best = Math.max(best, s * (1 - d / 0.09));
+  }
+  return best;
+}
+
+function ewScore5(pts) {
+  if (pts.length < 6) return null;
+  const [s0,s1,s2,s3,s4,s5] = pts;
+  const bull = s0.type === 'L';
+  if (bull) {
+    if (s1.type!=='H'||s2.type!=='L'||s3.type!=='H'||s4.type!=='L'||s5.type!=='H') return null;
+    const [p0,p1,p2,p3,p4,p5] = pts.map(x=>x.p);
+    if (p1<=p0||p2>=p1||p3<=p2||p4>=p3||p5<=p4||p2<=p0||p4<=p1) return null;
+    const w1=p1-p0, w2=p1-p2, w3=p3-p2, w4=p3-p4, w5=p5-p4;
+    if (w3<w1&&w3<w5) return null;
+    let c=0;
+    c+=fibScore(w2/w1,[[.382,20],[.5,15],[.618,25],[.786,10]]);
+    c+=fibScore(w3/w1,[[1,10],[1.272,15],[1.618,30],[2,20],[2.618,15]]);
+    c+=fibScore(w4/w3,[[.236,20],[.382,30],[.5,10]]);
+    c+=fibScore(w5/w1,[[.618,20],[1,30],[1.272,15],[1.618,10]]);
+    if (w3>w1*1.3) c+=10;
+    const conf=Math.min(100,Math.round(c)); if(conf<30) return null;
+    const span=p5-p0;
+    return { type:'impulse',dir:'bullish',conf, labels:['0','①','②','③','④','⑤'],
+      nodes:[p0,p1,p2,p3,p4,p5], wave:'⑤ complete',
+      tgt:{lo:+(p5-span*.382).toFixed(0),hi:+(p5-span*.236).toFixed(0),
+           wv:'ABC correction zone',fib:'23.6–38.2% retrace of full impulse'},
+      fibStr:`W2: ${(w2/w1*100).toFixed(0)}%  ·  W3: ${(w3/w1).toFixed(2)}×W1  ·  W4: ${(w4/w3*100).toFixed(0)}%` };
+  } else {
+    if (s1.type!=='L'||s2.type!=='H'||s3.type!=='L'||s4.type!=='H'||s5.type!=='L') return null;
+    const [p0,p1,p2,p3,p4,p5] = pts.map(x=>x.p);
+    if (p1>=p0||p2<=p1||p3>=p2||p4<=p3||p5>=p4||p2>=p0||p4>=p1) return null;
+    const w1=p0-p1, w2=p2-p1, w3=p2-p3, w4=p4-p3, w5=p4-p5;
+    if (w3<w1&&w3<w5) return null;
+    let c=0;
+    c+=fibScore(w2/w1,[[.382,20],[.5,15],[.618,25],[.786,10]]);
+    c+=fibScore(w3/w1,[[1,10],[1.272,15],[1.618,30],[2,20],[2.618,15]]);
+    c+=fibScore(w4/w3,[[.236,20],[.382,30],[.5,10]]);
+    c+=fibScore(w5/w1,[[.618,20],[1,30],[1.272,15],[1.618,10]]);
+    if (w3>w1*1.3) c+=10;
+    const conf=Math.min(100,Math.round(c)); if(conf<30) return null;
+    const span=p0-p5;
+    return { type:'impulse',dir:'bearish',conf, labels:['0','①','②','③','④','⑤'],
+      nodes:[p0,p1,p2,p3,p4,p5], wave:'⑤ complete',
+      tgt:{lo:+(p5+span*.236).toFixed(0),hi:+(p5+span*.382).toFixed(0),
+           wv:'ABC correction zone',fib:'23.6–38.2% retrace of full impulse'},
+      fibStr:`W2: ${(w2/w1*100).toFixed(0)}%  ·  W3: ${(w3/w1).toFixed(2)}×W1  ·  W4: ${(w4/w3*100).toFixed(0)}%` };
+  }
+}
+
+function ewScorePartial(pts) {
+  if (pts.length < 4) return null;
+  const [s0,s1,s2,s3] = pts;
+  const bull = s0.type === 'L';
+  if (bull) {
+    if (s1.type!=='H'||s2.type!=='L'||s3.type!=='H') return null;
+    const [p0,p1,p2,p3] = [s0.p,s1.p,s2.p,s3.p];
+    if (p1<=p0||p2>=p1||p3<=p2||p2<=p0) return null;
+    const w1=p1-p0, w2=p1-p2, w3=p3-p2;
+    let c=0;
+    c+=fibScore(w2/w1,[[.382,25],[.5,20],[.618,30],[.786,15]]);
+    c+=fibScore(w3/w1,[[1.272,15],[1.618,35],[2,25],[2.618,15]]);
+    if (w3>w1*1.1) c+=10;
+    let conf=Math.min(100,Math.round(c)); if(conf<25) return null;
+    if (pts.length>=5 && pts[4].type==='L') {
+      const p4=pts[4].p;
+      if (p4<p3&&p4>p1) {
+        const w4=p3-p4;
+        c+=fibScore(w4/w3,[[.236,20],[.382,30],[.5,15]]); conf=Math.min(100,Math.round(c));
+        const t1=+(p4+w1*.618).toFixed(0), t2=+(p4+w1*1).toFixed(0);
+        return { type:'impulse',dir:'bullish',conf, labels:['0','①','②','③','④','⑤?'],
+          nodes:[p0,p1,p2,p3,p4,null], wave:'④ complete → ⑤ forming',
+          tgt:{lo:Math.min(t1,t2),hi:Math.max(t1,t2),
+               wv:'Wave ⑤ target zone',fib:'61.8–100% of W1 from W4 low'},
+          fibStr:`W2: ${(w2/w1*100).toFixed(0)}%  ·  W3: ${(w3/w1).toFixed(2)}×W1  ·  W4: ${(w4/w3*100).toFixed(0)}%` };
+      }
+    }
+    const t1=+(p3-(p3-p0)*.382).toFixed(0), t2=+(p3-(p3-p0)*.236).toFixed(0);
+    return { type:'impulse',dir:'bullish',conf, labels:['0','①','②','③','④?','⑤?'],
+      nodes:[p0,p1,p2,p3,null,null], wave:'③ complete → ④ forming',
+      tgt:{lo:Math.min(t1,t2),hi:Math.max(t1,t2),
+           wv:'Wave ④ retrace zone',fib:'23.6–38.2% of wave 0→3 range'},
+      fibStr:`W2: ${(w2/w1*100).toFixed(0)}%  ·  W3: ${(w3/w1).toFixed(2)}×W1` };
+  } else {
+    if (s1.type!=='L'||s2.type!=='H'||s3.type!=='L') return null;
+    const [p0,p1,p2,p3] = [s0.p,s1.p,s2.p,s3.p];
+    if (p1>=p0||p2<=p1||p3>=p2||p2>=p0) return null;
+    const w1=p0-p1, w2=p2-p1, w3=p2-p3;
+    let c=0;
+    c+=fibScore(w2/w1,[[.382,25],[.5,20],[.618,30],[.786,15]]);
+    c+=fibScore(w3/w1,[[1.272,15],[1.618,35],[2,25],[2.618,15]]);
+    if (w3>w1*1.1) c+=10;
+    let conf=Math.min(100,Math.round(c)); if(conf<25) return null;
+    if (pts.length>=5 && pts[4].type==='H') {
+      const p4=pts[4].p;
+      if (p4>p3&&p4<p1) {
+        const w4=p4-p3;
+        c+=fibScore(w4/w3,[[.236,20],[.382,30],[.5,15]]); conf=Math.min(100,Math.round(c));
+        const t1=+(p4-w1*.618).toFixed(0), t2=+(p4-w1*1).toFixed(0);
+        return { type:'impulse',dir:'bearish',conf, labels:['0','①','②','③','④','⑤?'],
+          nodes:[p0,p1,p2,p3,p4,null], wave:'④ complete → ⑤ forming',
+          tgt:{lo:Math.min(t1,t2),hi:Math.max(t1,t2),
+               wv:'Wave ⑤ target zone',fib:'61.8–100% of W1 from W4 high'},
+          fibStr:`W2: ${(w2/w1*100).toFixed(0)}%  ·  W3: ${(w3/w1).toFixed(2)}×W1  ·  W4: ${(w4/w3*100).toFixed(0)}%` };
+      }
+    }
+    const t1=+(p3+(p0-p3)*.382).toFixed(0), t2=+(p3+(p0-p3)*.236).toFixed(0);
+    return { type:'impulse',dir:'bearish',conf, labels:['0','①','②','③','④?','⑤?'],
+      nodes:[p0,p1,p2,p3,null,null], wave:'③ complete → ④ forming',
+      tgt:{lo:Math.min(t1,t2),hi:Math.max(t1,t2),
+           wv:'Wave ④ retrace zone',fib:'23.6–38.2% of wave 0→3 range'},
+      fibStr:`W2: ${(w2/w1*100).toFixed(0)}%  ·  W3: ${(w3/w1).toFixed(2)}×W1` };
+  }
+}
+
+function ewScoreABC(pts) {
+  if (pts.length < 4) return null;
+  const [s0,s1,s2,s3] = pts;
+  if (s0.type==='H') {
+    if (s1.type!=='L'||s2.type!=='H'||s3.type!=='L') return null;
+    const [p0,pA,pB,pC] = [s0.p,s1.p,s2.p,s3.p];
+    if (pA>=p0||pB<=pA||pB>=p0) return null;
+    const wA=p0-pA, wB=pB-pA, wC=pB-pC;
+    let c=0;
+    c+=fibScore(wB/wA,[[.382,15],[.5,20],[.618,25],[.786,20]]);
+    c+=fibScore(wC/wA,[[.618,15],[1,30],[1.272,20],[1.618,25]]);
+    const conf=Math.min(100,Math.round(c)); if(conf<25) return null;
+    const t1=+(pB-wA*1).toFixed(0), t2=+(pB-wA*1.272).toFixed(0);
+    return { type:'correction',dir:'bearish',conf, labels:['top','A','B','C'],
+      nodes:[p0,pA,pB,pC], wave:'C complete',
+      tgt:{lo:Math.min(t1,t2),hi:Math.max(t1,t2),
+           wv:'Wave C target zone',fib:'100–127.2% of Wave A'},
+      fibStr:`B: ${(wB/wA*100).toFixed(0)}% of A  ·  C: ${(wC/wA).toFixed(2)}× A` };
+  } else {
+    if (s1.type!=='H'||s2.type!=='L'||s3.type!=='H') return null;
+    const [p0,pA,pB,pC] = [s0.p,s1.p,s2.p,s3.p];
+    if (pA<=p0||pB>=pA||pB<=p0) return null;
+    const wA=pA-p0, wB=pA-pB, wC=pC-pB;
+    let c=0;
+    c+=fibScore(wB/wA,[[.382,15],[.5,20],[.618,25],[.786,20]]);
+    c+=fibScore(wC/wA,[[.618,15],[1,30],[1.272,20],[1.618,25]]);
+    const conf=Math.min(100,Math.round(c)); if(conf<25) return null;
+    const t1=+(pB+wA*1).toFixed(0), t2=+(pB+wA*1.272).toFixed(0);
+    return { type:'correction',dir:'bullish',conf, labels:['bot','A','B','C'],
+      nodes:[p0,pA,pB,pC], wave:'C complete',
+      tgt:{lo:Math.min(t1,t2),hi:Math.max(t1,t2),
+           wv:'Wave C target zone',fib:'100–127.2% of Wave A'},
+      fibStr:`B: ${(wB/wA*100).toFixed(0)}% of A  ·  C: ${(wC/wA).toFixed(2)}× A` };
+  }
+}
+
+function ewDetect(candles) {
+  const sw = ewSwings(candles, 5);
+  if (sw.length < 4) return null;
+  let best = null;
+  if (sw.length >= 6) {
+    for (let i=Math.max(0,sw.length-8); i<=sw.length-6; i++) {
+      const r = ewScore5(sw.slice(i,i+6));
+      if (r && (!best||r.conf>best.conf)) best=r;
+    }
+  }
+  for (let n=4; n<=Math.min(5,sw.length); n++) {
+    const r = ewScorePartial(sw.slice(-n));
+    if (r && r.conf>(best?.conf||0)+5) best=r;
+  }
+  if (sw.length >= 4) {
+    for (let i=Math.max(0,sw.length-6); i<=sw.length-4; i++) {
+      const r = ewScoreABC(sw.slice(i,i+4));
+      if (r && r.conf>(best?.conf||0)+5) best=r;
+    }
+  }
+  return best;
+}
+
+function renderEW() {
+  if (!btcChart?.data?.length) return;
+  const ew = ewDetect(btcChart.data);
+  const patEl   = document.getElementById('ew-pat');
+  const dirEl   = document.getElementById('ew-dir');
+  const confEl  = document.getElementById('ew-conf');
+  const nodesEl = document.getElementById('ew-nodes');
+  const tzoneEl = document.getElementById('ew-tzone');
+  const twvEl   = document.getElementById('ew-twv');
+  const tfibEl  = document.getElementById('ew-tfib');
+  const fibsEl  = document.getElementById('ew-fibs');
+
+  if (!ew) {
+    patEl.textContent='NO CLEAR PATTERN'; patEl.className='ew-pat lo';
+    dirEl.textContent=''; confEl.textContent='';
+    nodesEl.innerHTML='<span style="font-size:9px;color:var(--text-dim)">Need more swing structure — check back after more volatility</span>';
+    tzoneEl.textContent='—'; twvEl.textContent='—'; tfibEl.textContent='—'; fibsEl.textContent='—';
+    return;
+  }
+
+  const patLabel = ew.type==='impulse' ? '5-WAVE IMPULSE' : 'ABC CORRECTION';
+  const confCls  = ew.conf>=65?'gn':ew.conf>=40?'am':'rd';
+  const confLbl  = ew.conf>=65?'HIGH':ew.conf>=40?'MED':'LOW';
+  patEl.textContent = patLabel;
+  patEl.className   = 'ew-pat '+(ew.conf>=65?'hi':ew.conf>=40?'md':'lo');
+  dirEl.textContent = ew.dir.toUpperCase();
+  dirEl.className   = 'ew-dir '+(ew.dir==='bullish'?'gn':'rd');
+  confEl.textContent= `CONF ${confLbl} ${ew.conf}%`;
+  confEl.className  = 'ew-conf '+confCls;
+
+  const isImp = ew.type === 'impulse';
+  const arrDirs = isImp
+    ? (ew.dir==='bullish' ? ['up','dn','up','dn','up'] : ['dn','up','dn','up','dn'])
+    : (ew.dir==='bearish' ? ['dn','up','dn']           : ['up','dn','up']);
+  const fmtP = p => p==null ? '?' : '$'+Math.round(p).toLocaleString('en-US',{maximumFractionDigits:0});
+
+  nodesEl.innerHTML = ew.nodes.map((p, i) => {
+    const lbl = ew.labels[i]||String(i);
+    const isDone = p != null;
+    const isLast = i === ew.nodes.length - 1;
+    const wlCls = isDone
+      ? (ew.type==='correction'?'abc':'done')
+      : (ew.type==='correction'?'abc-act':'active');
+    const arr = !isLast
+      ? `<span class="ew-arr ${arrDirs[i]||'up'}">${(arrDirs[i]||'up')==='up'?'↗':'↘'}</span>` : '';
+    return `<div class="ew-nd"><span class="ew-wl ${wlCls}">${lbl}</span><span class="ew-wp">${fmtP(p)}</span></div>${arr}`;
+  }).join('');
+
+  tzoneEl.textContent = `$${Number(ew.tgt.lo).toLocaleString()} – $${Number(ew.tgt.hi).toLocaleString()}`;
+  twvEl.textContent   = ew.wave+' · '+ew.tgt.wv;
+  tfibEl.textContent  = ew.tgt.fib;
+  fibsEl.textContent  = ew.fibStr||'—';
+}
+
 // ── State & render ─────────────────────────────────────────────────────────────
 const state={ log:{trades:[]}, env:{}, filter:'all', sel:null, prevTaken:0 };
 
@@ -622,6 +1153,8 @@ function render(){
   }
   state.prevTaken=taken;
   renderFeed();
+  renderInsights();
+  renderEW();
 }
 
 function renderFeed(){
@@ -736,8 +1269,11 @@ document.getElementById('d-close').addEventListener('click',()=>{
 });
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
-new BtcChart(document.getElementById('chart')).init();
+btcChart = new BtcChart(document.getElementById('chart'));
+btcChart.init();
+renderInsights();
 fetchAll();
+// EW renders after chart data loads via BtcChart.init() → renderEW()
 </script>
 </body>
 </html>
