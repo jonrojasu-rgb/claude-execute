@@ -112,8 +112,7 @@ header{
 
 /* ── Chart panel ───────────────────────────────────────── */
 .chart-panel{background:var(--surface);display:flex;flex-direction:column;min-height:0}
-.chart-wrap{flex:1;position:relative;min-height:0}
-#chart{position:absolute;inset:0;width:100%;height:100%}
+.chart-wrap{flex:1;min-height:0;overflow:hidden}
 
 /* ── Panel common ──────────────────────────────────────── */
 .ph{
@@ -385,12 +384,43 @@ footer{
       <div class="ph">
         <span class="pt">BTC / USDT &nbsp;·&nbsp; 4H</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:10px;color:var(--text-dim);letter-spacing:.1em">BYBIT LIVE</span>
+          <span style="font-size:10px;color:var(--text-dim);letter-spacing:.1em">BYBIT DATA</span>
           <span class="wsd" id="wsd">●</span>
         </div>
       </div>
       <div class="chart-wrap">
-        <canvas id="chart"></canvas>
+        <!-- TradingView Advanced Chart Widget -->
+        <div class="tradingview-widget-container" style="height:100%;width:100%">
+          <div class="tradingview-widget-container__widget" style="height:calc(100% - 24px);width:100%"></div>
+          <div style="background:#070b12;padding:2px 0;text-align:center">
+            <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"
+               style="color:#1a2d42;font-size:8px;font-family:monospace;letter-spacing:.1em;text-decoration:none">CHART · TRADINGVIEW</a>
+          </div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+          {
+            "autosize": true,
+            "symbol": "BYBIT:BTCUSDT",
+            "interval": "240",
+            "timezone": "America/Panama",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#0d1421",
+            "enable_publishing": false,
+            "withdateranges": true,
+            "hide_side_toolbar": false,
+            "allow_symbol_change": false,
+            "save_image": false,
+            "hide_volume": false,
+            "studies": [
+              "Volume@tv-basicstudies",
+              "PivotPointsStandard@tv-basicstudies",
+              "AutoFib@tv-basicstudies"
+            ],
+            "support_host": "https://www.tradingview.com"
+          }
+          </script>
+        </div>
       </div>
       <!-- ELLIOTT WAVE -->
       <div class="ew-panel">
@@ -566,23 +596,13 @@ function showAlert(dir){
   tradeBeep();
 }
 
-// ── BTC Live Chart ─────────────────────────────────────────────────────────────
+// ── BTC Data Feed (Bybit — feeds header ticker + EW / Insights panels) ─────────
 class BtcChart {
-  constructor(cvs){ this.cvs=cvs; this.ctx=cvs.getContext('2d'); this.data=[]; this.live=null; this.prev=null; this.ws=null; this.dirty=true; this.W=0; this.H=0; }
+  constructor(){ this.data=[]; this.live=null; this.prev=null; this.ws=null; }
   async init(){
-    this._resize();
-    new ResizeObserver(()=>{ this._resize(); this.dirty=true; }).observe(this.cvs.parentElement);
     await this._fetch();
     renderEW();
     this._ws();
-    this._loop();
-  }
-  _resize(){
-    const el=this.cvs.parentElement; const dpr=devicePixelRatio||1;
-    this.W=el.clientWidth; this.H=el.clientHeight;
-    this.cvs.width=this.W*dpr; this.cvs.height=this.H*dpr;
-    this.cvs.style.width=this.W+'px'; this.cvs.style.height=this.H+'px';
-    this.ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   async _fetch(){
     try{
@@ -590,7 +610,6 @@ class BtcChart {
       const j=await r.json();
       this.data=j.result.list.reverse().map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));
       if(this.data.length){ this.live=this.data.at(-1).c; this.prev=this.data.at(-2)?.c||this.live; }
-      this.dirty=true;
     }catch(e){}
   }
   _ws(){
@@ -611,72 +630,10 @@ class BtcChart {
         cEl.textContent=`${sign}$${Math.abs(chg).toFixed(0)} (${sign}${pct.toFixed(2)}%)`;
         cEl.className='tc '+(chg>=0?'up':'dn');
         document.getElementById('btc-vol').textContent='$'+(q/1e9).toFixed(2)+'B';
-        this.dirty=true;
       };
       this.ws.onerror=()=>{};
       this.ws.onclose=()=>{ document.getElementById('wsd').classList.remove('on'); setTimeout(()=>this._ws(),5000); };
     }catch(e){}
-  }
-  _loop(){ if(this.dirty&&this.W){ this._draw(); this.dirty=false; } requestAnimationFrame(()=>this._loop()); }
-  _draw(){
-    const {ctx,data,W,H}=this;
-    if(!data.length) return;
-    const pL=12,pR=70,pT=18,pB=46,vH=Math.min(36,H*.1);
-    const cW=W-pL-pR, cH=H-pT-pB;
-    const prices=data.flatMap(c=>[c.h,c.l]);
-    const mn=Math.min(...prices), mx=Math.max(...prices), rng=mx-mn||1;
-    const toY=p=>pT+cH-vH-8-((p-mn)/rng)*(cH-vH-8);
-    const toX=i=>pL+(i/(data.length-1))*cW;
-    ctx.clearRect(0,0,W,H);
-    // grid
-    ctx.setLineDash([2,5]); ctx.strokeStyle='rgba(0,200,255,0.06)'; ctx.lineWidth=1;
-    for(let i=0;i<=5;i++){
-      const y=pT+(i/5)*(cH-vH-8);
-      ctx.beginPath(); ctx.moveTo(pL,y); ctx.lineTo(W-pR,y); ctx.stroke();
-      const p=mx-(i/5)*rng;
-      ctx.fillStyle='#384e60'; ctx.font='9px JetBrains Mono,monospace'; ctx.textAlign='right';
-      ctx.fillText('$'+p.toLocaleString('en-US',{maximumFractionDigits:0}),W-pR+10,y+3);
-    }
-    ctx.setLineDash([]);
-    // time labels
-    ctx.fillStyle='#384e60'; ctx.font='9px JetBrains Mono,monospace'; ctx.textAlign='center';
-    for(let i=0;i<data.length;i+=10){
-      const d=new Date(data[i].t);
-      ctx.fillText((d.getMonth()+1)+'/'+(d.getDate()), toX(i), H-pB+14);
-    }
-    // area
-    const grad=ctx.createLinearGradient(0,pT,0,pT+cH-vH);
-    grad.addColorStop(0,'rgba(0,200,255,0.1)'); grad.addColorStop(1,'rgba(0,200,255,0.01)');
-    ctx.beginPath(); ctx.moveTo(toX(0),toY(data[0].c));
-    for(let i=1;i<data.length;i++) ctx.lineTo(toX(i),toY(data[i].c));
-    ctx.lineTo(toX(data.length-1),pT+cH-vH-8); ctx.lineTo(toX(0),pT+cH-vH-8); ctx.closePath();
-    ctx.fillStyle=grad; ctx.fill();
-    // line
-    ctx.beginPath(); ctx.strokeStyle='#00c8ff'; ctx.lineWidth=1.5; ctx.lineJoin='round';
-    ctx.moveTo(toX(0),toY(data[0].c));
-    for(let i=1;i<data.length;i++) ctx.lineTo(toX(i),toY(data[i].c));
-    ctx.stroke();
-    // volume bars
-    const mvol=Math.max(...data.map(c=>c.v));
-    for(let i=0;i<data.length;i++){
-      const bh=(data[i].v/mvol)*vH, bw=Math.max(2,(cW/data.length)*.55), x=toX(i);
-      ctx.fillStyle=data[i].c>=data[i].o?'rgba(0,230,118,.22)':'rgba(255,61,87,.22)';
-      ctx.fillRect(x-bw/2,H-pB-bh,bw,bh);
-    }
-    // live price
-    if(this.live!=null){
-      const y=toY(this.live), isUp=this.live>=(this.prev||this.live);
-      const lc=isUp?'rgba(0,230,118,.45)':'rgba(255,61,87,.45)';
-      const fc=isUp?'#00e676':'#ff3d57';
-      ctx.setLineDash([3,5]); ctx.strokeStyle=lc; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(pL,y); ctx.lineTo(W-pR,y); ctx.stroke(); ctx.setLineDash([]);
-      const label='$'+this.live.toLocaleString('en-US',{maximumFractionDigits:0});
-      ctx.font='bold 10px JetBrains Mono,monospace'; ctx.textAlign='center';
-      const lw=ctx.measureText(label).width+12;
-      ctx.fillStyle=fc; ctx.fillRect(W-pR+2,y-9,lw,18);
-      ctx.fillStyle='#000'; ctx.fillText(label,W-pR+2+lw/2,y+4);
-      ctx.fillStyle=fc; ctx.beginPath(); ctx.arc(toX(data.length-1),y,4,0,Math.PI*2); ctx.fill();
-    }
   }
 }
 
@@ -1269,7 +1226,7 @@ document.getElementById('d-close').addEventListener('click',()=>{
 });
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
-btcChart = new BtcChart(document.getElementById('chart'));
+btcChart = new BtcChart();
 btcChart.init();
 renderInsights();
 fetchAll();
