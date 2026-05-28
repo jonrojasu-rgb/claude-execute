@@ -112,7 +112,7 @@ const server = http.createServer((req, res) => {
   send(res, 404, "Not found");
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   const banner = [
     "",
     "  ╔══════════════════════════════════════════╗",
